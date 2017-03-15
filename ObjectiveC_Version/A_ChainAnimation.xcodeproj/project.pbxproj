@@ -23,6 +23,11 @@
 		A97B3B361E70B12200AB2AE0 /* CALayer+A_Animation.m in Sources */ = {isa = PBXBuildFile; fileRef = A97B3B311E70B12200AB2AE0 /* CALayer+A_Animation.m */; };
 		A97B3B371E70B12200AB2AE0 /* UIView+A_Animation.m in Sources */ = {isa = PBXBuildFile; fileRef = A97B3B331E70B12200AB2AE0 /* UIView+A_Animation.m */; };
 		A97B3B3A1E70B1B500AB2AE0 /* A_ChainAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = A97B3B391E70B1B500AB2AE0 /* A_ChainAnimation.m */; };
+		A9ED4CBC1E78936200E0F0E8 /* A_ChainAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = A97B3B391E70B1B500AB2AE0 /* A_ChainAnimation.m */; };
+		A9ED4CBD1E78936800E0F0E8 /* UIView+A_Animation.m in Sources */ = {isa = PBXBuildFile; fileRef = A97B3B331E70B12200AB2AE0 /* UIView+A_Animation.m */; };
+		A9ED4CBE1E78936A00E0F0E8 /* CALayer+A_Animation.m in Sources */ = {isa = PBXBuildFile; fileRef = A97B3B311E70B12200AB2AE0 /* CALayer+A_Animation.m */; };
+		A9ED4CBF1E78936C00E0F0E8 /* A_AnimationKeyframeProvider.m in Sources */ = {isa = PBXBuildFile; fileRef = A97B3B2F1E70B12200AB2AE0 /* A_AnimationKeyframeProvider.m */; };
+		A9ED4CC01E78937200E0F0E8 /* A_Animation.m in Sources */ = {isa = PBXBuildFile; fileRef = A97B3B2C1E70B12200AB2AE0 /* A_Animation.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -54,6 +59,7 @@
 		A97B3B331E70B12200AB2AE0 /* UIView+A_Animation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "UIView+A_Animation.m"; path = "A_ChainAnimation/UIView+A_Animation.m"; sourceTree = "<group>"; };
 		A97B3B381E70B1B500AB2AE0 /* A_ChainAnimation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = A_ChainAnimation.h; path = A_ChainAnimation/A_ChainAnimation.h; sourceTree = "<group>"; };
 		A97B3B391E70B1B500AB2AE0 /* A_ChainAnimation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = A_ChainAnimation.m; path = A_ChainAnimation/A_ChainAnimation.m; sourceTree = "<group>"; };
+		A9ED4CC61E78D34600E0F0E8 /* A_ChainAnimationSwiftDemo_bridging.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = A_ChainAnimationSwiftDemo_bridging.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -144,6 +150,7 @@
 				A93077801E6F223B00D17D5A /* Assets.xcassets */,
 				A93077821E6F223B00D17D5A /* LaunchScreen.storyboard */,
 				A93077851E6F223B00D17D5A /* Info.plist */,
+				A9ED4CC61E78D34600E0F0E8 /* A_ChainAnimationSwiftDemo_bridging.h */,
 			);
 			path = A_ChainAnimationSwiftDemo;
 			sourceTree = "<group>";
@@ -267,8 +274,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A9ED4CBE1E78936A00E0F0E8 /* CALayer+A_Animation.m in Sources */,
+				A9ED4CBF1E78936C00E0F0E8 /* A_AnimationKeyframeProvider.m in Sources */,
+				A9ED4CBC1E78936200E0F0E8 /* A_ChainAnimation.m in Sources */,
 				A930777C1E6F223B00D17D5A /* ViewController.swift in Sources */,
 				A930777A1E6F223B00D17D5A /* AppDelegate.swift in Sources */,
+				A9ED4CC01E78937200E0F0E8 /* A_Animation.m in Sources */,
+				A9ED4CBD1E78936800E0F0E8 /* UIView+A_Animation.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -435,6 +447,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.animax.A-ChainAnimationSwiftDemo";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = A_ChainAnimationSwiftDemo/A_ChainAnimationSwiftDemo_bridging.h;
 				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
@@ -447,6 +460,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.animax.A-ChainAnimationSwiftDemo";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = A_ChainAnimationSwiftDemo/A_ChainAnimationSwiftDemo_bridging.h;
 				SWIFT_VERSION = 3.0;
 			};
 			name = Release;

@@ -8,7 +8,6 @@
 
 #import "ViewController.h"
 #import "A_ChainAnimation.h"
-#import "UIView+A_Animation.h"
 
 @interface ViewController () <UITableViewDelegate, UITableViewDataSource>
 
@@ -17,7 +16,6 @@
 @end
 
 @implementation ViewController {
-//    A_ChainAnimation *_chain;
 }
 
 - (void)viewDidLoad {
@@ -37,7 +35,7 @@
     if (box) {
         [[[UIView addAnimationWithDuration:1.0 aniamtion:^{
             [box setAlpha:0.0];
-        }] addAnimationWithduration:1.0 aniamtion:^{
+        }] addAnimationWithDuration:1.0 aniamtion:^{
             [box setAlpha:1.0];
         }] run];
     }

@@ -46,10 +46,10 @@
     return self;
 }
 
-- (A_ChainAnimation *)addAnimationWithduration:(NSTimeInterval)duration aniamtion:(void(^)(void))animationBlock {
+- (A_ChainAnimation *)addAnimationWithDuration:(NSTimeInterval)duration aniamtion:(void(^)(void))animationBlock {
     return [self addAnimationWithWaitTime:0.0 duration:duration aniamtion:animationBlock completion:nil];
 }
-- (A_ChainAnimation *)addAnimationWithduration:(NSTimeInterval)duration aniamtion:(void(^)(void))animationBlock completion:(void(^)(void))completionBlock {
+- (A_ChainAnimation *)addAnimationWithDuration:(NSTimeInterval)duration aniamtion:(void(^)(void))animationBlock completion:(void(^)(void))completionBlock {
     return [self addAnimationWithWaitTime:0.0 duration:duration aniamtion:animationBlock completion:completionBlock];
 }
 - (A_ChainAnimation *)addAnimationWithWaitTime:(NSTimeInterval)waitTime duration:(NSTimeInterval)duration aniamtion:(void(^)(void))animationBlock {

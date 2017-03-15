@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "A_ChainAnimation.h"
 #import "UIView+A_Animation.h"
 
 #define defaultDurationTime 0.5f;
@@ -47,6 +48,31 @@
                                      aniamtion:(void(^)(void))animationBlock
                                     completion:(void(^)(void))completionBlock{
     
+    return [[[A_ChainAnimation alloc] init] addAnimationWithWaitTime:waitTime duration:duration aniamtion:animationBlock completion:completionBlock];
+}
+
+
+- (A_ChainAnimation *)addAnimationWithDuration:(NSTimeInterval)duration
+                                     aniamtion:(void(^)(void))animationBlock {
+    return [[[A_ChainAnimation alloc] init] addAnimationWithWaitTime:0.0 duration:duration aniamtion:animationBlock completion:nil];
+}
+
+- (A_ChainAnimation *)addAnimationWithDuration:(NSTimeInterval)duration
+                                     aniamtion:(void(^)(void))animationBlock
+                                    completion:(void(^)(void))completionBlock {
+    return [[[A_ChainAnimation alloc] init] addAnimationWithWaitTime:0.0 duration:duration aniamtion:animationBlock completion:completionBlock];
+}
+
+- (A_ChainAnimation *)addAnimationWithWaitTime:(NSTimeInterval)waitTime
+                                      duration:(NSTimeInterval)duration
+                                     aniamtion:(void(^)(void))animationBlock {
+    return [[[A_ChainAnimation alloc] init] addAnimationWithWaitTime:waitTime duration:duration aniamtion:animationBlock completion:nil];
+}
+
+- (A_ChainAnimation *)addAnimationWithWaitTime:(NSTimeInterval)waitTime
+                                      duration:(NSTimeInterval)duration
+                                     aniamtion:(void(^)(void))animationBlock
+                                    completion:(void(^)(void))completionBlock {
     return [[[A_ChainAnimation alloc] init] addAnimationWithWaitTime:waitTime duration:duration aniamtion:animationBlock completion:completionBlock];
 }
 

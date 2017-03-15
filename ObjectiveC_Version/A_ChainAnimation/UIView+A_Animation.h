@@ -8,7 +8,8 @@
 
 #import <UIKit/UIKit.h>
 #import "A_Animation.h"
-#import "A_ChainAnimation.h"
+
+@class A_ChainAnimation;
 
 @interface UIView (A_Animation)
 
@@ -29,6 +30,21 @@
                                      aniamtion:(void(^)(void))animationBlock
                                     completion:(void(^)(void))completionBlock;
 
+- (A_ChainAnimation *)addAnimationWithDuration:(NSTimeInterval)duration
+                                     aniamtion:(void(^)(void))animationBlock;
+
+- (A_ChainAnimation *)addAnimationWithDuration:(NSTimeInterval)duration
+                                     aniamtion:(void(^)(void))animationBlock
+                                    completion:(void(^)(void))completionBlock;
+
+- (A_ChainAnimation *)addAnimationWithWaitTime:(NSTimeInterval)waitTime
+                                      duration:(NSTimeInterval)duration
+                                     aniamtion:(void(^)(void))animationBlock;
+
+- (A_ChainAnimation *)addAnimationWithWaitTime:(NSTimeInterval)waitTime
+                                      duration:(NSTimeInterval)duration
+                                     aniamtion:(void(^)(void))animationBlock
+                                    completion:(void(^)(void))completionBlock;
 
 #pragma mark - Animation Effect Express
 - (void) A_AnimationEffect:(A_AnimationEffectType)type Repeat:(float)repeat Duration:(double)duration CompletionBlock:(void (^)(void))block;
