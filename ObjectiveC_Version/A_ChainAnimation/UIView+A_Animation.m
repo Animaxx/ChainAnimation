@@ -25,58 +25,7 @@
     return outputImage;
 }
 
-#pragma mark - Simple Chian Animation
-+ (A_ChainAnimation *)addAnimationWithDuration:(NSTimeInterval)duration
-                                     aniamtion:(void(^)(void))animationBlock {
-    return [[[A_ChainAnimation alloc] init] addAnimationWithWaitTime:0.0 duration:duration aniamtion:animationBlock completion:nil];
-}
-
-+ (A_ChainAnimation *)addAnimationWithDuration:(NSTimeInterval)duration
-                                     aniamtion:(void(^)(void))animationBlock
-                                    completion:(void(^)(void))completionBlock{
-    return [[[A_ChainAnimation alloc] init] addAnimationWithWaitTime:0.0 duration:duration aniamtion:animationBlock completion:completionBlock];
-}
-
-+ (A_ChainAnimation *)addAnimationWithWaitTime:(NSTimeInterval)waitTime
-                                      duration:(NSTimeInterval)duration
-                                     aniamtion:(void(^)(void))animationBlock{
-    return [[[A_ChainAnimation alloc] init] addAnimationWithWaitTime:waitTime duration:duration aniamtion:animationBlock completion:nil];
-}
-
-+ (A_ChainAnimation *)addAnimationWithWaitTime:(NSTimeInterval)waitTime
-                                      duration:(NSTimeInterval)duration
-                                     aniamtion:(void(^)(void))animationBlock
-                                    completion:(void(^)(void))completionBlock{
-    
-    return [[[A_ChainAnimation alloc] init] addAnimationWithWaitTime:waitTime duration:duration aniamtion:animationBlock completion:completionBlock];
-}
-
-
-- (A_ChainAnimation *)addAnimationWithDuration:(NSTimeInterval)duration
-                                     aniamtion:(void(^)(void))animationBlock {
-    return [[[A_ChainAnimation alloc] init] addAnimationWithWaitTime:0.0 duration:duration aniamtion:animationBlock completion:nil];
-}
-
-- (A_ChainAnimation *)addAnimationWithDuration:(NSTimeInterval)duration
-                                     aniamtion:(void(^)(void))animationBlock
-                                    completion:(void(^)(void))completionBlock {
-    return [[[A_ChainAnimation alloc] init] addAnimationWithWaitTime:0.0 duration:duration aniamtion:animationBlock completion:completionBlock];
-}
-
-- (A_ChainAnimation *)addAnimationWithWaitTime:(NSTimeInterval)waitTime
-                                      duration:(NSTimeInterval)duration
-                                     aniamtion:(void(^)(void))animationBlock {
-    return [[[A_ChainAnimation alloc] init] addAnimationWithWaitTime:waitTime duration:duration aniamtion:animationBlock completion:nil];
-}
-
-- (A_ChainAnimation *)addAnimationWithWaitTime:(NSTimeInterval)waitTime
-                                      duration:(NSTimeInterval)duration
-                                     aniamtion:(void(^)(void))animationBlock
-                                    completion:(void(^)(void))completionBlock {
-    return [[[A_ChainAnimation alloc] init] addAnimationWithWaitTime:waitTime duration:duration aniamtion:animationBlock completion:completionBlock];
-}
-
-#pragma mark - Animation Effect
+#pragma mark - Single Animation Effect
 - (void) A_AnimationEffect:(A_AnimationEffectType)type Repeat:(float)repeat Duration:(double)duration CompletionBlock:(void (^)(void))block{
     
     CALayer *mirrorLayer = nil;
@@ -104,13 +53,17 @@
         [CATransaction setCompletionBlock:^{
             if ((int)type >= 1000 && (int)type <= 1999 && mirrorLayer) {
                 [mirrorLayer removeFromSuperlayer];
+            }  else if ((int)type >= 300 && (int)type <= 399) {
+                [self.layer removeAllAnimations];
             }
+            
             if (block) {
                 block();
             }
         }];
         
         A_AnimationEffectType animationType = type;
+        
         // generate normal effection when it's for mirror layer
         if ((int)animationType > 1000) {
             animationType = (A_AnimationEffectType)((int)animationType - 1000);
@@ -162,6 +115,39 @@
 - (void) A_AnimationEffect:(A_AnimationEffectType)type{
     [self A_AnimationEffect:type Repeat:0 Duration:0 CompletionBlock:nil];
 }
+
+
+#pragma mark - Chian Block Animation
+- (A_ChainAnimation *)addAnimationWithDuration:(NSTimeInterval)duration
+                                     aniamtion:(void(^)(void))animationBlock {
+    return [[A_ChainAnimation animate:self] addAnimationWithWaitTime:0.0 duration:duration aniamtion:animationBlock completion:nil];
+}
+
+- (A_ChainAnimation *)addAnimationWithDuration:(NSTimeInterval)duration
+                                     aniamtion:(void(^)(void))animationBlock
+                                    completion:(void(^)(void))completionBlock {
+    return [[A_ChainAnimation animate:self] addAnimationWithWaitTime:0.0 duration:duration aniamtion:animationBlock completion:completionBlock];
+}
+
+- (A_ChainAnimation *)addAnimationWithWaitTime:(NSTimeInterval)waitTime
+                                      duration:(NSTimeInterval)duration
+                                     aniamtion:(void(^)(void))animationBlock {
+    return [[A_ChainAnimation animate:self] addAnimationWithWaitTime:waitTime duration:duration aniamtion:animationBlock completion:nil];
+}
+
+- (A_ChainAnimation *)addAnimationWithWaitTime:(NSTimeInterval)waitTime
+                                      duration:(NSTimeInterval)duration
+                                     aniamtion:(void(^)(void))animationBlock
+                                    completion:(void(^)(void))completionBlock {
+    return [[A_ChainAnimation animate:self] addAnimationWithWaitTime:waitTime duration:duration aniamtion:animationBlock completion:completionBlock];
+}
+
+#pragma mark - Chain Effect Animation
+- (A_ChainAnimation *)addAnimationWithEffect:(A_AnimationEffectType)effect type:(A_AnimationType)type duration:(NSTimeInterval)duration {
+    return [[A_ChainAnimation animate:self] addAnimationWithEffect:effect type:type duration:duration];
+}
+
+
 
 @end
 

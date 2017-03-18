@@ -13,39 +13,6 @@
 
 @interface UIView (A_Animation)
 
-#pragma mark - Simple Chian Animation
-+ (A_ChainAnimation *)addAnimationWithDuration:(NSTimeInterval)duration
-                                     aniamtion:(void(^)(void))animationBlock;
-
-+ (A_ChainAnimation *)addAnimationWithDuration:(NSTimeInterval)duration
-                                     aniamtion:(void(^)(void))animationBlock
-                                    completion:(void(^)(void))completionBlock;
-
-+ (A_ChainAnimation *)addAnimationWithWaitTime:(NSTimeInterval)waitTime
-                                      duration:(NSTimeInterval)duration
-                                     aniamtion:(void(^)(void))animationBlock;
-
-+ (A_ChainAnimation *)addAnimationWithWaitTime:(NSTimeInterval)waitTime
-                                      duration:(NSTimeInterval)duration
-                                     aniamtion:(void(^)(void))animationBlock
-                                    completion:(void(^)(void))completionBlock;
-
-- (A_ChainAnimation *)addAnimationWithDuration:(NSTimeInterval)duration
-                                     aniamtion:(void(^)(void))animationBlock;
-
-- (A_ChainAnimation *)addAnimationWithDuration:(NSTimeInterval)duration
-                                     aniamtion:(void(^)(void))animationBlock
-                                    completion:(void(^)(void))completionBlock;
-
-- (A_ChainAnimation *)addAnimationWithWaitTime:(NSTimeInterval)waitTime
-                                      duration:(NSTimeInterval)duration
-                                     aniamtion:(void(^)(void))animationBlock;
-
-- (A_ChainAnimation *)addAnimationWithWaitTime:(NSTimeInterval)waitTime
-                                      duration:(NSTimeInterval)duration
-                                     aniamtion:(void(^)(void))animationBlock
-                                    completion:(void(^)(void))completionBlock;
-
 #pragma mark - Animation Effect Express
 - (void) A_AnimationEffect:(A_AnimationEffectType)type Repeat:(float)repeat Duration:(double)duration CompletionBlock:(void (^)(void))block;
 - (void) A_AnimationEffect:(A_AnimationEffectType)type Repeat:(float)repeat Duration:(double)duration;
@@ -57,5 +24,27 @@
 
 - (void) A_AnimationEffect:(A_AnimationEffectType)type CompletionBlock:(void (^)(void))block;
 - (void) A_AnimationEffect:(A_AnimationEffectType)type;
+
+
+#pragma mark - Simple Chian Animation
+- (A_ChainAnimation *)addAnimationWithDuration:(NSTimeInterval)duration
+                                     aniamtion:(void(^)(void))animationBlock;
+
+- (A_ChainAnimation *)addAnimationWithDuration:(NSTimeInterval)duration
+                                     aniamtion:(void(^)(void))animationBlock
+                                    completion:(void(^)(void))completionBlock;
+
+- (A_ChainAnimation *)addAnimationWithWaitTime:(NSTimeInterval)waitTime
+                                      duration:(NSTimeInterval)duration
+                                     aniamtion:(void(^)(void))animationBlock;
+
+- (A_ChainAnimation *)addAnimationWithWaitTime:(NSTimeInterval)waitTime
+                                      duration:(NSTimeInterval)duration
+                                     aniamtion:(void(^)(void))animationBlock
+                                    completion:(void(^)(void))completionBlock;
+
+#pragma mark - Chain Effect Animation
+- (A_ChainAnimation *)addAnimationWithEffect:(A_AnimationEffectType)effect type:(A_AnimationType)type duration:(NSTimeInterval)duration;
+
 
 @end

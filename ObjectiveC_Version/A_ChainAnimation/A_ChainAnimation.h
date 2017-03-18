@@ -17,6 +17,37 @@
 
 @interface A_ChainAnimation : NSObject
 
+/**
+ Target object
+ */
+@property (weak, nonatomic) UIView *targetView;
+
+
+/**
+ Set to sync, adding animations after this set will be rander at same time.
+ */
+@property (assign, readonly) A_ChainAnimation *thenSync;
+
+/**
+ Set to async.
+ */
+@property (assign, readonly) A_ChainAnimation *then;
+
+/**
+ Initialize animation with target UIView
+
+ @param target Target UIView
+ @return A_ChainAnimation
+ */
++ (A_ChainAnimation *)animate:(UIView *)target;
+
+/**
+ Run the whole animations chain.
+ */
+- (void)play;
+
+#pragma mark - UIView block animation set
+
 - (A_ChainAnimation *)addAnimationWithDuration:(NSTimeInterval)duration aniamtion:(void(^)(void))animationBlock;
 
 - (A_ChainAnimation *)addAnimationWithDuration:(NSTimeInterval)duration aniamtion:(void(^)(void))animationBlock completion:(void(^)(void))completionBlock;
@@ -25,6 +56,9 @@
 
 - (A_ChainAnimation *)addAnimationWithWaitTime:(NSTimeInterval)waitTime duration:(NSTimeInterval)duration aniamtion:(void(^)(void))animationBlock completion:(void(^)(void))completionBlock;
 
-- (void)run;
+#pragma mark - A_AnimationEffect animation set
+- (A_ChainAnimation *)addAnimationWithEffect:(A_AnimationEffectType)effect type:(A_AnimationType)type duration:(NSTimeInterval)duration ;
+
+
 
 @end

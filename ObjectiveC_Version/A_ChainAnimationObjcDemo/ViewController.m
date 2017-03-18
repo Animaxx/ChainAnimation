@@ -32,13 +32,49 @@
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cell"];
     
     __weak UIView *box = [cell viewWithTag:0];
-    if (box) {
-        [[[UIView addAnimationWithDuration:1.0 aniamtion:^{
-            [box setAlpha:0.0];
-        }] addAnimationWithDuration:1.0 aniamtion:^{
-            [box setAlpha:1.0];
-        }] run];
+    
+    switch (indexPath.row) {
+        case 10:
+            if (box) {
+                [[[box addAnimationWithDuration:1.0 aniamtion:^{
+                    [box setAlpha:0.0];
+                }] addAnimationWithDuration:1.0 aniamtion:^{
+                    [box setAlpha:1.0];
+                }] play];
+            }
+            break;
+        case 1:
+            if (box) {
+                [[[box addAnimationWithEffect:A_AnimationEffectType_pulse type:A_AnimationType_easeInBack duration:1.0]
+                  addAnimationWithEffect:A_AnimationEffectType_squeeze type:A_AnimationType_bigSpring duration:1.0]
+                 play];
+            }
+            break;
+        case 2:
+            if (box) {
+                [[[[[box addAnimationWithDuration:1.0 aniamtion:^{
+                    [box setAlpha:0.3];
+                }] addAnimationWithEffect:A_AnimationEffectType_pulse type:A_AnimationType_easeInBack duration:1.0]
+                   addAnimationWithDuration:1.0 aniamtion:^{
+                       [box setAlpha:1.0];
+                   }] addAnimationWithEffect:A_AnimationEffectType_squeeze type:A_AnimationType_easeOutElastic duration:1.0]
+                 play];
+            }
+            break;
+        case 0:
+            if (box) {
+//                [box A_AnimationEffect:A_AnimationEffectType_mirror_zoomOut Duration:1.0];
+//                [box A_AnimationEffect:A_AnimationEffectType_zoomOut Duration:1.0];
+                [box A_AnimationEffect:A_AnimationEffectType_zoomOut Duration:1.0 CompletionBlock:^{
+                    [box setHidden:YES];
+                }];
+            }
+            break;
+        default:
+            break;
     }
+    
+    
     
     return cell;
 }

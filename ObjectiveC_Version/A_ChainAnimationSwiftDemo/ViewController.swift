@@ -28,7 +28,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                 box.alpha = 0.0
             }).add(withDuration: 1.0, aniamtion: { 
                 box.alpha = 1.0
-            }).run()
+            }).play()
         }
         
         return cell!
