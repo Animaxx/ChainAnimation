@@ -131,7 +131,12 @@ typedef enum : NSUInteger {
         
         if (_syncingChainItem) {
             _syncingChainItem.duration = _syncingChainItem.duration > duration ? _syncingChainItem.duration : duration;
-            _syncingChainItem.animations = [[NSMutableArray alloc] initWithObjects:[A_Animation A_GenerateEffect:effect Duration:duration], nil];
+            
+            if ([A_Animation A_CheckIfMirrorEffect:effect]) {
+                [_syncingChainItem.animationsForMirror addObject:[A_Animation A_GenerateEffect:[A_Animation A_ConvertMirrorEffect:effect] Duration:duration]];
+            } else {
+                [_syncingChainItem.animations addObject:[A_Animation A_GenerateEffect:effect Duration:duration]];
+            }
             
         } else {
             _syncingChainItem = [[animationItem alloc] init];
@@ -141,7 +146,7 @@ typedef enum : NSUInteger {
             _syncingChainItem.animationsForMirror = [[NSMutableArray alloc] init];
             
             if ([A_Animation A_CheckIfMirrorEffect:effect]) {
-                [_syncingChainItem.animationsForMirror addObject:[A_Animation A_GenerateEffect:effect Duration:duration]];
+                [_syncingChainItem.animationsForMirror addObject:[A_Animation A_GenerateEffect:[A_Animation A_ConvertMirrorEffect:effect] Duration:duration]];
             } else {
                 [_syncingChainItem.animations addObject:[A_Animation A_GenerateEffect:effect Duration:duration]];
             }
@@ -156,17 +161,15 @@ typedef enum : NSUInteger {
         item.animationsForMirror = [[NSMutableArray alloc] init];
         
         if ([A_Animation A_CheckIfMirrorEffect:effect]) {
-            [_syncingChainItem.animationsForMirror addObject:[A_Animation A_GenerateEffect:effect Duration:duration]];
+            [_syncingChainItem.animationsForMirror addObject:[A_Animation A_GenerateEffect:[A_Animation A_ConvertMirrorEffect:effect] Duration:duration]];
         } else {
             [_syncingChainItem.animations addObject:[A_Animation A_GenerateEffect:effect Duration:duration]];
         }
-        
         
         [self.chainItems addObject:item];
     }
     return self;
 }
-
 
 - (void)play {
     [self _checkSetToChain];
@@ -276,7 +279,6 @@ typedef enum : NSUInteger {
         }
     });
 }
-
 
 //- (void)dealloc {
 //    NSLog(@"dealloc");

@@ -43,8 +43,13 @@
                                      aniamtion:(void(^)(void))animationBlock
                                     completion:(void(^)(void))completionBlock;
 
+#pragma mark - Sync Aniamtion
+- (A_ChainAnimation *)syncChainAnimation;
+
 #pragma mark - Chain Effect Animation
 - (A_ChainAnimation *)addAnimationWithEffect:(A_AnimationEffectType)effect type:(A_AnimationType)type duration:(NSTimeInterval)duration;
+
+
 
 
 @end

@@ -51,14 +51,14 @@
     
     [CATransaction begin]; {
         [CATransaction setCompletionBlock:^{
+            if (block) {
+                block();
+            }
+            
             if ((int)type >= 1000 && (int)type <= 1999 && mirrorLayer) {
                 [mirrorLayer removeFromSuperlayer];
             }  else if ((int)type >= 300 && (int)type <= 399) {
                 [self.layer removeAllAnimations];
-            }
-            
-            if (block) {
-                block();
             }
         }];
         
@@ -142,10 +142,17 @@
     return [[A_ChainAnimation animate:self] addAnimationWithWaitTime:waitTime duration:duration aniamtion:animationBlock completion:completionBlock];
 }
 
+#pragma mark - Sync Aniamtion
+- (A_ChainAnimation *)syncChainAnimation {
+    return [[A_ChainAnimation animate:self] thenSync];
+}
+
+
 #pragma mark - Chain Effect Animation
 - (A_ChainAnimation *)addAnimationWithEffect:(A_AnimationEffectType)effect type:(A_AnimationType)type duration:(NSTimeInterval)duration {
     return [[A_ChainAnimation animate:self] addAnimationWithEffect:effect type:type duration:duration];
 }
+
 
 
 

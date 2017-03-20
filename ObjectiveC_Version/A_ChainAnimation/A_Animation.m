@@ -252,14 +252,14 @@
 }
 
 +(BOOL)A_CheckIfMirrorEffect:(A_AnimationEffectType)type {
-    return (int)type >= 1000 && (int)type >= 1999;
+    return (NSUInteger)type >= 1000 && (NSUInteger)type <= 1999;
 }
 +(BOOL)A_CheckIfDisappearingEffect:(A_AnimationEffectType)type {
-    return (int)type >= 300 && (int)type >= 399;
+    return (NSUInteger)type >= 300 && (NSUInteger)type <= 399;
 }
-+(BOOL)A_ConvertMirrorEffect:(A_AnimationEffectType)type {
++(A_AnimationEffectType)A_ConvertMirrorEffect:(A_AnimationEffectType)type {
     if ([A_Animation A_CheckIfMirrorEffect:type]) {
-        return (A_AnimationEffectType)((int)type - 1000);
+        return (A_AnimationEffectType)((NSUInteger)type - 1000);
     }
     return type;
 }

@@ -18,7 +18,7 @@
 
 +(BOOL)A_CheckIfMirrorEffect:(A_AnimationEffectType)type;
 +(BOOL)A_CheckIfDisappearingEffect:(A_AnimationEffectType)type;
-+(BOOL)A_ConvertMirrorEffect:(A_AnimationEffectType)type;
++(A_AnimationEffectType)A_ConvertMirrorEffect:(A_AnimationEffectType)type;
 
 @end
 
