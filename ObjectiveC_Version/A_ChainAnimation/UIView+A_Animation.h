@@ -27,18 +27,18 @@
 
 
 #pragma mark - Simple Chian Animation
-- (A_ChainAnimation *)addAnimationWithDuration:(NSTimeInterval)duration
+- (A_ChainAnimation *)addAnimateWithDuration:(NSTimeInterval)duration
                                      aniamtion:(void(^)(void))animationBlock;
 
-- (A_ChainAnimation *)addAnimationWithDuration:(NSTimeInterval)duration
+- (A_ChainAnimation *)addAnimateWithDuration:(NSTimeInterval)duration
                                      aniamtion:(void(^)(void))animationBlock
                                     completion:(void(^)(void))completionBlock;
 
-- (A_ChainAnimation *)addAnimationWithWaitTime:(NSTimeInterval)waitTime
+- (A_ChainAnimation *)addAnimateWithWaitTime:(NSTimeInterval)waitTime
                                       duration:(NSTimeInterval)duration
                                      aniamtion:(void(^)(void))animationBlock;
 
-- (A_ChainAnimation *)addAnimationWithWaitTime:(NSTimeInterval)waitTime
+- (A_ChainAnimation *)addAnimateWithWaitTime:(NSTimeInterval)waitTime
                                       duration:(NSTimeInterval)duration
                                      aniamtion:(void(^)(void))animationBlock
                                     completion:(void(^)(void))completionBlock;
@@ -47,7 +47,9 @@
 - (A_ChainAnimation *)syncChainAnimation;
 
 #pragma mark - Chain Effect Animation
-- (A_ChainAnimation *)addAnimationWithEffect:(A_AnimationEffectType)effect type:(A_AnimationType)type duration:(NSTimeInterval)duration;
+- (A_ChainAnimation *)addAnimateWithEffect:(A_AnimationEffectType)effect type:(A_AnimationType)type duration:(NSTimeInterval)duration;
+
+#pragma mark - Set CALayer animation
 
 
 

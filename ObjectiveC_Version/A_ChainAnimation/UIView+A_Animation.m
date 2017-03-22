@@ -118,28 +118,28 @@
 
 
 #pragma mark - Chian Block Animation
-- (A_ChainAnimation *)addAnimationWithDuration:(NSTimeInterval)duration
+- (A_ChainAnimation *)addAnimateWithDuration:(NSTimeInterval)duration
                                      aniamtion:(void(^)(void))animationBlock {
-    return [[A_ChainAnimation animate:self] addAnimationWithWaitTime:0.0 duration:duration aniamtion:animationBlock completion:nil];
+    return [[A_ChainAnimation animate:self] addAnimateWithWaitTime:0.0 duration:duration aniamtion:animationBlock completion:nil];
 }
 
-- (A_ChainAnimation *)addAnimationWithDuration:(NSTimeInterval)duration
+- (A_ChainAnimation *)addAnimateWithDuration:(NSTimeInterval)duration
                                      aniamtion:(void(^)(void))animationBlock
                                     completion:(void(^)(void))completionBlock {
-    return [[A_ChainAnimation animate:self] addAnimationWithWaitTime:0.0 duration:duration aniamtion:animationBlock completion:completionBlock];
+    return [[A_ChainAnimation animate:self] addAnimateWithWaitTime:0.0 duration:duration aniamtion:animationBlock completion:completionBlock];
 }
 
-- (A_ChainAnimation *)addAnimationWithWaitTime:(NSTimeInterval)waitTime
+- (A_ChainAnimation *)addAnimateWithWaitTime:(NSTimeInterval)waitTime
                                       duration:(NSTimeInterval)duration
                                      aniamtion:(void(^)(void))animationBlock {
-    return [[A_ChainAnimation animate:self] addAnimationWithWaitTime:waitTime duration:duration aniamtion:animationBlock completion:nil];
+    return [[A_ChainAnimation animate:self] addAnimateWithWaitTime:waitTime duration:duration aniamtion:animationBlock completion:nil];
 }
 
-- (A_ChainAnimation *)addAnimationWithWaitTime:(NSTimeInterval)waitTime
+- (A_ChainAnimation *)addAnimateWithWaitTime:(NSTimeInterval)waitTime
                                       duration:(NSTimeInterval)duration
                                      aniamtion:(void(^)(void))animationBlock
                                     completion:(void(^)(void))completionBlock {
-    return [[A_ChainAnimation animate:self] addAnimationWithWaitTime:waitTime duration:duration aniamtion:animationBlock completion:completionBlock];
+    return [[A_ChainAnimation animate:self] addAnimateWithWaitTime:waitTime duration:duration aniamtion:animationBlock completion:completionBlock];
 }
 
 #pragma mark - Sync Aniamtion
@@ -149,8 +149,8 @@
 
 
 #pragma mark - Chain Effect Animation
-- (A_ChainAnimation *)addAnimationWithEffect:(A_AnimationEffectType)effect type:(A_AnimationType)type duration:(NSTimeInterval)duration {
-    return [[A_ChainAnimation animate:self] addAnimationWithEffect:effect type:type duration:duration];
+- (A_ChainAnimation *)addAnimateWithEffect:(A_AnimationEffectType)effect type:(A_AnimationType)type duration:(NSTimeInterval)duration {
+    return [[A_ChainAnimation animate:self] addAnimateWithEffect:effect type:type duration:duration];
 }
 
 

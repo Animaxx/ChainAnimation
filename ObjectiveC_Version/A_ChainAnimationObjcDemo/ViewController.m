@@ -43,9 +43,9 @@
                 // Two UIView block animation chain
                 [titleLabel setText:@"UIView block animation chian example"];
                 
-                [[[box addAnimationWithDuration:1.0 aniamtion:^{
+                [[[box addAnimateWithDuration:1.0 aniamtion:^{
                     [box setAlpha:0.0];
-                }] addAnimationWithDuration:1.0 aniamtion:^{
+                }] addAnimateWithDuration:1.0 aniamtion:^{
                     [box setAlpha:1.0];
                 }] play];
             }
@@ -55,8 +55,8 @@
                 // Two effection aniamtion chain
                 [titleLabel setText:@"Effection animation chian example"];
                 
-                [[[box addAnimationWithEffect:A_AnimationEffectType_pulse type:A_AnimationType_easeInBack duration:1.0]
-                  addAnimationWithEffect:A_AnimationEffectType_squeeze type:A_AnimationType_bigSpring duration:1.0]
+                [[[box addAnimateWithEffect:A_AnimationEffectType_pulse type:A_AnimationType_easeInBack duration:1.0]
+                  addAnimateWithEffect:A_AnimationEffectType_squeeze type:A_AnimationType_bigSpring duration:1.0]
                  play];
             }
             break;
@@ -65,12 +65,12 @@
                 // UIView block and effection animatiom mix
                 [titleLabel setText:@"UIView block animation and Effection animation chian mix"];
                 
-                [[[[[box addAnimationWithDuration:1.0 aniamtion:^{
+                [[[[[box addAnimateWithDuration:1.0 aniamtion:^{
                     [box setAlpha:0.3];
-                }] addAnimationWithEffect:A_AnimationEffectType_pulse type:A_AnimationType_easeInBack duration:1.0]
-                   addAnimationWithDuration:1.0 aniamtion:^{
+                }] addAnimateWithEffect:A_AnimationEffectType_pulse type:A_AnimationType_easeInBack duration:1.0]
+                   addAnimateWithDuration:1.0 aniamtion:^{
                        [box setAlpha:1.0];
-                   }] addAnimationWithEffect:A_AnimationEffectType_squeeze type:A_AnimationType_easeOutElastic duration:1.0]
+                   }] addAnimateWithEffect:A_AnimationEffectType_squeeze type:A_AnimationType_easeOutElastic duration:1.0]
                  play];
             }
             break;
@@ -89,8 +89,18 @@
                 // Sync effection animation combin
                 [titleLabel setText:@"Sync effection animation combin"];
                 
-                [[[[box syncChainAnimation] addAnimationWithEffect:A_AnimationEffectType_squeeze type:A_AnimationType_easeInBack duration:1.0]
-                  addAnimationWithEffect:A_AnimationEffectType_mirror_zoomOut type:A_AnimationType_easeInExpo duration:1.5] play];
+                [[[[box syncChainAnimation] addAnimateWithEffect:A_AnimationEffectType_squeeze type:A_AnimationType_easeInBack duration:1.0]
+                  addAnimateWithEffect:A_AnimationEffectType_mirror_zoomOut type:A_AnimationType_easeInExpo duration:1.5] play];
+            }
+            break;
+        case 5:
+            if (box) {
+                [titleLabel setText:@"CALayer animation"];
+                
+                [[[box syncChainAnimation] addAnimateSetPositionX:10 AnimtionType:A_AnimationType_spring Duraion:2.0] play];
+                
+//                [[[[box syncChainAnimation] addAnimateWithEffect:A_AnimationEffectType_squeeze type:A_AnimationType_easeInBack duration:1.0]
+//                  addAnimateWithEffect:A_AnimationEffectType_mirror_zoomOut type:A_AnimationType_easeInExpo duration:1.5] play];
             }
             break;
         default:
