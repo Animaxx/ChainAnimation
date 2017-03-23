@@ -47,6 +47,7 @@
  Run the whole animations chain.
  */
 - (void)play;
+- (void)playWithoutSet;
 
 #pragma mark - UIView block animation set
 
@@ -104,5 +105,53 @@
 
 - (A_ChainAnimation *) addAnimateSetTransform:(CATransform3D)value AnimtionType:(A_AnimationType)type;
 - (A_ChainAnimation *) addAnimateSetTransform:(CATransform3D)value AnimtionType:(A_AnimationType)type Duraion:(double)duration;
+
+#pragma mark - 
+#pragma mark: Animation Transform Setting
+- (A_ChainAnimation *) addAnimateSetRotationX:(CGFloat)value AnimtionType:(A_AnimationType)type;
+- (A_ChainAnimation *) addAnimateSetRotationX:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration;
+- (A_ChainAnimation *) addAnimateSetRotationY:(CGFloat)value AnimtionType:(A_AnimationType)type;
+- (A_ChainAnimation *) addAnimateSetRotationY:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration;
+- (A_ChainAnimation *) addAnimateSetRotationZ:(CGFloat)value AnimtionType:(A_AnimationType)type;
+- (A_ChainAnimation *) addAnimateSetRotationZ:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration;
+
+- (A_ChainAnimation *) addAnimateSetScaleX:(CGFloat)value AnimtionType:(A_AnimationType)type;
+- (A_ChainAnimation *) addAnimateSetScaleX:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration;
+- (A_ChainAnimation *) addAnimateSetScaleY:(CGFloat)value AnimtionType:(A_AnimationType)type;
+- (A_ChainAnimation *) addAnimateSetScaleY:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration;
+- (A_ChainAnimation *) addAnimateSetScaleZ:(CGFloat)value AnimtionType:(A_AnimationType)type;
+- (A_ChainAnimation *) addAnimateSetScaleZ:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration;
+- (A_ChainAnimation *) addAnimateSetScale:(CGFloat)value AnimtionType:(A_AnimationType)type;
+- (A_ChainAnimation *) addAnimateSetScale:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration;
+
+- (A_ChainAnimation *) addAnimateSetTranslationX:(CGFloat)value AnimtionType:(A_AnimationType)type;
+- (A_ChainAnimation *) addAnimateSetTranslationX:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration;
+- (A_ChainAnimation *) addAnimateSetTranslationY:(CGFloat)value AnimtionType:(A_AnimationType)type;
+- (A_ChainAnimation *) addAnimateSetTranslationY:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration;
+- (A_ChainAnimation *) addAnimateSetTranslationZ:(CGFloat)value AnimtionType:(A_AnimationType)type;
+- (A_ChainAnimation *) addAnimateSetTranslationZ:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration;
+- (A_ChainAnimation *) addAnimateSetTranslation:(CGSize)value AnimtionType:(A_AnimationType)type;
+- (A_ChainAnimation *) addAnimateSetTranslation:(CGSize)value AnimtionType:(A_AnimationType)type Duraion:(double)duration;
+
+#pragma mark -
+#pragma mark: Custom Setting
+/* Range of value [0 ... 1.0], 0 means no change */
+- (A_ChainAnimation *) addAnimateCustomLeftOblique:(CGFloat)value AnimtionType:(A_AnimationType)type;
+- (A_ChainAnimation *) addAnimateCustomLeftOblique:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration;
+
+/* Range of value [0 ... 1.0], 0 means no change */
+- (A_ChainAnimation *) addAnimateCustomRightOblique:(CGFloat)value AnimtionType:(A_AnimationType)type;
+- (A_ChainAnimation *) addAnimateCustomRightOblique:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration;
+
+/* Range of value [0 ... 1.0], 0 means no change */
+- (A_ChainAnimation *) addAnimateCustomTopOblique:(CGFloat)value AnimtionType:(A_AnimationType)type;
+- (A_ChainAnimation *) addAnimateCustomTopOblique:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration;
+
+/* Range of value [0 ... 1.0], 0 means no change */
+- (A_ChainAnimation *) addAnimateCustomBottomOblique:(CGFloat)value AnimtionType:(A_AnimationType)type;
+- (A_ChainAnimation *) addAnimateCustomBottomOblique:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration;
+
+- (A_ChainAnimation *) addAnimateCustomRecoverOblique:(A_AnimationType)type;
+- (A_ChainAnimation *) addAnimateCustomRecoverOblique:(A_AnimationType)type Duraion:(double)duration;
 
 @end

@@ -23,6 +23,8 @@ typedef enum : NSUInteger {
 
 @property (strong, nonatomic) NSMutableArray<CAAnimation *> *animations;
 @property (strong, nonatomic) NSMutableArray<CAAnimation *> *animationsForMirror;
+
+@property (strong, nonatomic) NSMutableDictionary<NSString *, id> *properiesPreset;
 @property (strong, nonatomic) NSMutableDictionary<NSString *, id> *properiesSet;
 
 @property (copy, nonatomic) void(^animationBlock)(void);
@@ -72,9 +74,9 @@ typedef enum : NSUInteger {
 }
 - (void) _addCALayerProperty:(NSString *)key value:(id)endValue animtionType:(A_AnimationType)type duration:(double)duration {
     
-    // TODO set value after animation
-    
     CAKeyframeAnimation *animation = [A_Animation A_GenerateKeyframe:key Type:type Duration:duration FPS:A_AnimationFPS_high Start:[self.targetView.layer valueForKeyPath:key] End:endValue];
+    [animation setRemovedOnCompletion:NO];
+    [animation setFillMode:kCAFillModeForwards];
     
     if (self.currectMode == chainAnimtionModeSync) {
         if (_syncingChainItem) {
@@ -101,32 +103,26 @@ typedef enum : NSUInteger {
         item.type = animationType_CAAniamtion;
         item.animations = [[NSMutableArray alloc] initWithObjects:animation, nil];
         item.animationsForMirror = [[NSMutableArray alloc] init];
+        item.properiesSet = [[NSMutableDictionary alloc] initWithDictionary:@{key: endValue}];
         [self.chainItems addObject:item];
     }
+    
+//    [self _setLayerProperty:key value:endValue];
 }
 
-#pragma mark - Initializtion
-+ (A_ChainAnimation *)animate:(UIView *)target {
-    A_ChainAnimation *animation = [[A_ChainAnimation alloc] init];
-    animation.targetView = target;
-    return animation;
-}
-- (instancetype)init {
-    self = [super init];
-    if (self) {
-        _chainItems = [[NSMutableArray alloc] init];
-        _currectMode = chainAnimtionModeAsync;
-    }
-    return self;
-}
-
-#pragma mark - Execute animate
-- (void)play {
+- (void) _playAnimate:(BOOL)setPropertyValue {
     [self _checkSetToChain];
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^ {
         
         for (animationItem *item in self.chainItems) {
+            
+            if (item.properiesPreset && [item.properiesPreset count]>0) {
+                for (NSString *presetKey in item.properiesPreset) {
+                    [self.targetView.layer setValue:[item.properiesPreset objectForKey:presetKey] forKeyPath:presetKey];
+                }
+            }
+            
             switch (item.type) {
                 case animationType_Block: {
                     
@@ -184,19 +180,30 @@ typedef enum : NSUInteger {
                                 [self.targetView.layer addSublayer:mirrorLayer];
                             }
                             
+                            NSString *animationKey = [[NSUUID UUID] UUIDString];
                             [CATransaction begin]; {
                                 
                                 [CATransaction setCompletionBlock:^{
+                                    
+                                    if (setPropertyValue) { // Set CALayer property value after the animation finished
+                                        for (NSString *valueKey in item.properiesSet) {
+                                            [self.targetView.layer setValue:[item.properiesSet objectForKey:valueKey] forKeyPath:valueKey];
+                                        }
+                                    }
+                                    
+                                    [self.targetView.layer removeAnimationForKey:animationKey];
                                     dispatch_semaphore_signal(inflightSemaphore);
                                     [mirrorLayer removeFromSuperlayer];
                                 }];
                                 
                                 if (item.animations && [item.animations count] > 0) {
                                     CAAnimationGroup *group = [CAAnimationGroup animation];
-                                    [group setRemovedOnCompletion:YES];
+                                    [group setRemovedOnCompletion:NO];
+                                    [group setFillMode:kCAFillModeForwards];
+                                    
                                     [group setAnimations:item.animations];
                                     [group setDuration:item.duration];
-                                    [self.targetView.layer addAnimation:group forKey:nil];
+                                    [self.targetView.layer addAnimation:group forKey:animationKey];
                                 }
                                 if (item.animationsForMirror && [item.animationsForMirror count] > 0) {
                                     
@@ -224,10 +231,86 @@ typedef enum : NSUInteger {
                     break;
             }
             
-            
-            
         }
     });
+}
+- (void) _addProperiesSetWithKey:(NSString *)key andValue:(id)value {
+    if (self.currectMode == chainAnimtionModeSync) {
+        if (_syncingChainItem.properiesSet) {
+            [_syncingChainItem.properiesSet setObject:value forKey:key];
+        } else {
+            _syncingChainItem.properiesSet = [[NSMutableDictionary alloc] initWithDictionary:@{key: value}];
+        }
+    } else {
+        NSMutableDictionary *dic = [self.chainItems lastObject].properiesSet;
+        if (dic) {
+            [dic setObject:value forKey:key];
+        } else {
+            dic = [[NSMutableDictionary alloc] initWithDictionary:@{key: value}];
+        }
+        [self.chainItems lastObject].properiesSet = dic;
+    }
+}
+
+- (void) _presetCustomAnchorPoint:(CGPoint)anchorPoint {
+    CGPoint newPoint = CGPointMake(self.targetView.layer.bounds.size.width * anchorPoint.x,
+                                   self.targetView.layer.bounds.size.height * anchorPoint.y);
+    CGPoint oldPoint = CGPointMake(self.targetView.layer.bounds.size.width * self.targetView.layer.anchorPoint.x,
+                                   self.targetView.layer.bounds.size.height * self.targetView.layer.anchorPoint.y);
+    
+    CGPoint position = self.targetView.layer.position;
+    
+    position.x -= oldPoint.x;
+    position.x += newPoint.x;
+    
+    position.y -= oldPoint.y;
+    position.y += newPoint.y;
+    
+    self.targetView.layer.anchorPoint = anchorPoint;
+    self.targetView.layer.position = position;
+    
+//    if (self.currectMode == chainAnimtionModeSync) {
+//        if (_syncingChainItem.properiesPreset) {
+//            [_syncingChainItem.properiesPreset setObject:[NSValue valueWithCGPoint:anchorPoint] forKey:@"anchorPoint"];
+//            [_syncingChainItem.properiesPreset setObject:[NSValue valueWithCGPoint:position] forKey:@"position"];
+//        } else {
+//            _syncingChainItem.properiesPreset = [[NSMutableDictionary alloc] initWithDictionary:@{@"anchorPoint": [NSValue valueWithCGPoint:anchorPoint],
+//                                                                                               @"position": [NSValue valueWithCGPoint:position]}];
+//        }
+//    } else {
+//        NSMutableDictionary *dic = [self.chainItems lastObject].properiesPreset;
+//        if (dic) {
+//            [dic setObject:[NSValue valueWithCGPoint:anchorPoint] forKey:@"anchorPoint"];
+//            [dic setObject:[NSValue valueWithCGPoint:position] forKey:@"position"];
+//        } else {
+//            dic = [[NSMutableDictionary alloc] initWithDictionary:@{@"anchorPoint": [NSValue valueWithCGPoint:anchorPoint],
+//                                                                    @"position": [NSValue valueWithCGPoint:position]}];
+//        }
+//        [self.chainItems lastObject].properiesPreset = dic;
+//    }
+}
+
+#pragma mark - Initializtion
++ (A_ChainAnimation *)animate:(UIView *)target {
+    A_ChainAnimation *animation = [[A_ChainAnimation alloc] init];
+    animation.targetView = target;
+    return animation;
+}
+- (instancetype)init {
+    self = [super init];
+    if (self) {
+        _chainItems = [[NSMutableArray alloc] init];
+        _currectMode = chainAnimtionModeAsync;
+    }
+    return self;
+}
+
+#pragma mark - Execute animate
+- (void)play {
+    [self _playAnimate:true];
+}
+- (void)playWithoutSet {
+    [self _playAnimate:false];
 }
 
 #pragma mark - Dynamic Property
@@ -401,10 +484,12 @@ typedef enum : NSUInteger {
 }
 - (A_ChainAnimation *) addAnimateSetCornerRadius:(CGFloat)value AnimtionType:(A_AnimationType)type{
     [self _addCALayerProperty:@"cornerRadius" value:@(value) animtionType:type duration:0.5f];
+    [self.targetView.layer setMasksToBounds:YES];
     return self;
 }
 - (A_ChainAnimation *) addAnimateSetCornerRadius:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
     [self _addCALayerProperty:@"cornerRadius" value:@(value) animtionType:type duration:duration];
+    [self.targetView.layer setMasksToBounds:YES];
     return self;
 }
 
@@ -460,19 +545,215 @@ typedef enum : NSUInteger {
     
     CGRect rect = CGRectMake(self.targetView.bounds.origin.x - widthDiff , self.targetView.bounds.origin.y - hightDiff, self.targetView.bounds.size.width + widthDiff, self.targetView.bounds.size.height + hightDiff);
     
-    [self _addCALayerProperty:@"bounds" value:[NSValue valueWithCGRect:rect] animtionType:type duration:0.5f];
+    [self _addCALayerProperty:@"bounds" value:[NSValue valueWithCGRect:rect] animtionType:type duration:duration];
     return self;
 }
 
 - (A_ChainAnimation *) addAnimateSetTransform:(CATransform3D)value AnimtionType:(A_AnimationType)type{
-    [self _addCALayerProperty:@"sublayerTransform" value:[NSValue valueWithCATransform3D:value] animtionType:type duration:0.5f];
+    [self _addCALayerProperty:@"transform" value:[NSValue valueWithCATransform3D:value] animtionType:type duration:0.5f];
     return self;
 }
 - (A_ChainAnimation *) addAnimateSetTransform:(CATransform3D)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
-    [self _addCALayerProperty:@"sublayerTransform" value:[NSValue valueWithCATransform3D:value] animtionType:type duration:duration];
+    [self _addCALayerProperty:@"transform" value:[NSValue valueWithCATransform3D:value] animtionType:type duration:duration];
     return self;
 }
 
+
+#pragma mark: Animation Transform Setting
+- (A_ChainAnimation *) addAnimateSetRotationX:(CGFloat)value AnimtionType:(A_AnimationType)type {
+    [self _addCALayerProperty:@"transform.rotation.x" value:@(value) animtionType:type duration:0.5f];
+    return self;
+}
+- (A_ChainAnimation *) addAnimateSetRotationX:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+    [self _addCALayerProperty:@"transform.rotation.x" value:@(value) animtionType:type duration:duration];
+    return self;
+}
+- (A_ChainAnimation *) addAnimateSetRotationY:(CGFloat)value AnimtionType:(A_AnimationType)type {
+    [self _addCALayerProperty:@"transform.rotation.y" value:@(value) animtionType:type duration:0.5f];
+    return self;
+}
+- (A_ChainAnimation *) addAnimateSetRotationY:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+    [self _addCALayerProperty:@"transform.rotation.y" value:@(value) animtionType:type duration:duration];
+    return self;
+}
+- (A_ChainAnimation *) addAnimateSetRotationZ:(CGFloat)value AnimtionType:(A_AnimationType)type {
+    [self _addCALayerProperty:@"transform.rotation.z" value:@(value) animtionType:type duration:0.5f];
+    return self;
+}
+- (A_ChainAnimation *) addAnimateSetRotationZ:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+    [self _addCALayerProperty:@"transform.rotation.z" value:@(value) animtionType:type duration:duration];
+    return self;
+}
+
+- (A_ChainAnimation *) addAnimateSetScaleX:(CGFloat)value AnimtionType:(A_AnimationType)type {
+    [self _addCALayerProperty:@"transform.scale.x" value:@(value) animtionType:type duration:0.5f];
+    return self;
+}
+- (A_ChainAnimation *) addAnimateSetScaleX:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+    [self _addCALayerProperty:@"transform.scale.x" value:@(value) animtionType:type duration:duration];
+    return self;
+}
+- (A_ChainAnimation *) addAnimateSetScaleY:(CGFloat)value AnimtionType:(A_AnimationType)type {
+    [self _addCALayerProperty:@"transform.scale.y" value:@(value) animtionType:type duration:0.5f];
+    return self;
+}
+- (A_ChainAnimation *) addAnimateSetScaleY:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+    [self _addCALayerProperty:@"transform.scale.y" value:@(value) animtionType:type duration:duration];
+    return self;
+}
+- (A_ChainAnimation *) addAnimateSetScaleZ:(CGFloat)value AnimtionType:(A_AnimationType)type {
+    [self _addCALayerProperty:@"transform.scale.z" value:@(value) animtionType:type duration:0.5f];
+    return self;
+}
+- (A_ChainAnimation *) addAnimateSetScaleZ:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+    [self _addCALayerProperty:@"transform.scale.z" value:@(value) animtionType:type duration:duration];
+    return self;
+}
+- (A_ChainAnimation *) addAnimateSetScale:(CGFloat)value AnimtionType:(A_AnimationType)type {
+    [self _addCALayerProperty:@"transform.scale" value:@(value) animtionType:type duration:0.5f];
+    return self;
+}
+- (A_ChainAnimation *) addAnimateSetScale:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+    [self _addCALayerProperty:@"transform.scale" value:@(value) animtionType:type duration:duration];
+    return self;
+}
+
+- (A_ChainAnimation *) addAnimateSetTranslationX:(CGFloat)value AnimtionType:(A_AnimationType)type {
+    [self _addCALayerProperty:@"transform.translation.x" value:@(value) animtionType:type duration:0.5f];
+    return self;
+}
+- (A_ChainAnimation *) addAnimateSetTranslationX:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+    [self _addCALayerProperty:@"transform.translation.x" value:@(value) animtionType:type duration:duration];
+    return self;
+}
+- (A_ChainAnimation *) addAnimateSetTranslationY:(CGFloat)value AnimtionType:(A_AnimationType)type {
+    [self _addCALayerProperty:@"transform.translation.y" value:@(value) animtionType:type duration:0.5f];
+    return self;
+}
+- (A_ChainAnimation *) addAnimateSetTranslationY:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+    [self _addCALayerProperty:@"transform.translation.y" value:@(value) animtionType:type duration:duration];
+    return self;
+}
+- (A_ChainAnimation *) addAnimateSetTranslationZ:(CGFloat)value AnimtionType:(A_AnimationType)type {
+    [self _addCALayerProperty:@"transform.translation.z" value:@(value) animtionType:type duration:0.5f];
+    return self;
+}
+- (A_ChainAnimation *) addAnimateSetTranslationZ:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+    [self _addCALayerProperty:@"transform.translation.z" value:@(value) animtionType:type duration:duration];
+    return self;
+}
+- (A_ChainAnimation *) addAnimateSetTranslation:(CGSize)value AnimtionType:(A_AnimationType)type {
+    [self _addCALayerProperty:@"transform.translation" value:[NSValue valueWithCGSize:value] animtionType:type duration:0.5f];
+    return self;
+}
+- (A_ChainAnimation *) addAnimateSetTranslation:(CGSize)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+    [self _addCALayerProperty:@"transform.translation" value:[NSValue valueWithCGSize:value] animtionType:type duration:duration];
+    return self;
+}
+
+#pragma mark: Custom Setting
+- (A_ChainAnimation *) addAnimateCustomLeftOblique:(CGFloat)value AnimtionType:(A_AnimationType)type {
+    return [self addAnimateCustomLeftOblique:value AnimtionType:type Duraion:0.5f];
+}
+- (A_ChainAnimation *) addAnimateCustomLeftOblique:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
+    if (value<0.0) { value = 0.0f; }
+    else if (value>1.0) { value = 1.0f; }
+    
+    [self _presetCustomAnchorPoint:CGPointMake(0.0, 0.5)];
+    
+    CATransform3D transformation = CATransform3DIdentity;
+    transformation.m14 = (value/100);
+    
+    CATransform3D yRotation = CATransform3DMakeRotation((value*-75)*M_PI/180.0, 0.0, 1.0, 0);
+    CATransform3D concatenatedTransformation = CATransform3DConcat(yRotation, transformation);
+    
+    [self addAnimateSetTransform:concatenatedTransformation AnimtionType:type Duraion:duration];
+    return self;
+}
+
+/* Range of value [0 ... 1.0], 0 means no change */
+- (A_ChainAnimation *) addAnimateCustomRightOblique:(CGFloat)value AnimtionType:(A_AnimationType)type {
+    return [self addAnimateCustomRightOblique:value AnimtionType:type Duraion:0.5f];
+}
+- (A_ChainAnimation *) addAnimateCustomRightOblique:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
+    if (value<0.0) { value = 0.0f; }
+    else if (value>1.0) { value = 1.0f; }
+    
+    [self _presetCustomAnchorPoint:CGPointMake(1.0, 0.5)];
+    CATransform3D transformation = CATransform3DIdentity;
+    transformation.m14 = -(value/100);
+    
+    CATransform3D yRotation = CATransform3DMakeRotation((value*75)*M_PI/180.0, 0.0, 1.0, 0);
+    CATransform3D concatenatedTransformation = CATransform3DConcat(yRotation, transformation);
+    
+    [self addAnimateSetTransform:concatenatedTransformation AnimtionType:type Duraion:duration];
+    return self;
+}
+
+/* Range of value [0 ... 1.0], 0 means no change */
+- (A_ChainAnimation *) addAnimateCustomTopOblique:(CGFloat)value AnimtionType:(A_AnimationType)type {
+    return [self addAnimateCustomTopOblique:value AnimtionType:type Duraion:0.5f];
+}
+- (A_ChainAnimation *) addAnimateCustomTopOblique:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+    if (value<0.0) { value = 0.0f; }
+    else if (value>1.0) { value = 1.0f; }
+    
+    [self _presetCustomAnchorPoint:CGPointMake(0.5, 0.0)];
+    CATransform3D transformation = CATransform3DIdentity;
+    transformation.m24 = (value/100);
+    
+    CATransform3D yRotation = CATransform3DMakeRotation((value*75)*M_PI/180.0, 1.0, 0.0, 0);
+    CATransform3D concatenatedTransformation = CATransform3DConcat(yRotation, transformation);
+    
+    [self addAnimateSetTransform:concatenatedTransformation AnimtionType:type Duraion:duration];
+    return self;
+}
+
+/* Range of value [0 ... 1.0], 0 means no change */
+- (A_ChainAnimation *) addAnimateCustomBottomOblique:(CGFloat)value AnimtionType:(A_AnimationType)type {
+    return [self addAnimateCustomBottomOblique:value AnimtionType:type Duraion:0.5f];
+}
+- (A_ChainAnimation *) addAnimateCustomBottomOblique:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+    if (value<0.0) { value = 0.0f; }
+    else if (value>1.0) { value = 1.0f; }
+    
+    [self _presetCustomAnchorPoint:CGPointMake(0.5, 1.0)];
+    CATransform3D transformation = CATransform3DIdentity;
+    transformation.m24 = -(value/100);
+    
+    CATransform3D yRotation = CATransform3DMakeRotation((value*-75)*M_PI/180.0, 1.0, 0.0, 0);
+    CATransform3D concatenatedTransformation = CATransform3DConcat(yRotation, transformation);
+    
+    [self addAnimateSetTransform:concatenatedTransformation AnimtionType:type Duraion:duration];
+    return self;
+}
+
+- (A_ChainAnimation *) addAnimateCustomRecoverOblique:(A_AnimationType)type {
+    return [self addAnimateCustomRecoverOblique:type Duraion:0.5f];
+}
+- (A_ChainAnimation *) addAnimateCustomRecoverOblique:(A_AnimationType)type Duraion:(double)duration {
+    CGPoint anchorPoint = CGPointMake(0.5, 0.5);
+    
+    CGPoint newPoint = CGPointMake(self.targetView.layer.bounds.size.width * anchorPoint.x,
+                                   self.targetView.layer.bounds.size.height * anchorPoint.y);
+    CGPoint oldPoint = CGPointMake(self.targetView.layer.bounds.size.width * self.targetView.layer.anchorPoint.x,
+                                   self.targetView.layer.bounds.size.height * self.targetView.layer.anchorPoint.y);
+    
+    CGPoint position = self.targetView.layer.position;
+    
+    position.x -= oldPoint.x;
+    position.x += newPoint.x;
+    
+    position.y -= oldPoint.y;
+    position.y += newPoint.y;
+    
+    [self addAnimateSetTransform:CATransform3DIdentity AnimtionType:type Duraion:duration];
+    
+    [self _addProperiesSetWithKey:@"position" andValue:[NSValue valueWithCGPoint:position]];
+    [self _addProperiesSetWithKey:@"anchorPoint" andValue:[NSValue valueWithCGPoint:anchorPoint]];
+    
+    return self;
+}
 
 //- (void)dealloc {
 //    NSLog(@"dealloc");

@@ -43,15 +43,12 @@
                                      aniamtion:(void(^)(void))animationBlock
                                     completion:(void(^)(void))completionBlock;
 
-#pragma mark - Sync Aniamtion
-- (A_ChainAnimation *)syncChainAnimation;
+#pragma mark - Create Chain Aniamtion;
+- (A_ChainAnimation *)syncAnimate;
+- (A_ChainAnimation *)animate;
 
 #pragma mark - Chain Effect Animation
 - (A_ChainAnimation *)addAnimateWithEffect:(A_AnimationEffectType)effect type:(A_AnimationType)type duration:(NSTimeInterval)duration;
-
-#pragma mark - Set CALayer animation
-
-
 
 
 @end

@@ -40,8 +40,7 @@
     switch (indexPath.row) {
         case 0:
             if (box) {
-                // Two UIView block animation chain
-                [titleLabel setText:@"UIView block animation chian example"];
+                [titleLabel setText:@"UIView block animation chain example"];
                 
                 [[[box addAnimateWithDuration:1.0 aniamtion:^{
                     [box setAlpha:0.0];
@@ -52,8 +51,7 @@
             break;
         case 1:
             if (box) {
-                // Two effection aniamtion chain
-                [titleLabel setText:@"Effection animation chian example"];
+                [titleLabel setText:@"Effection animation chain example"];
                 
                 [[[box addAnimateWithEffect:A_AnimationEffectType_pulse type:A_AnimationType_easeInBack duration:1.0]
                   addAnimateWithEffect:A_AnimationEffectType_squeeze type:A_AnimationType_bigSpring duration:1.0]
@@ -62,8 +60,7 @@
             break;
         case 2:
             if (box) {
-                // UIView block and effection animatiom mix
-                [titleLabel setText:@"UIView block animation and Effection animation chian mix"];
+                [titleLabel setText:@"UIView block animation and Effection animation chain mix example"];
                 
                 [[[[[box addAnimateWithDuration:1.0 aniamtion:^{
                     [box setAlpha:0.3];
@@ -76,8 +73,7 @@
             break;
         case 3:
             if (box) {
-                // Single effection animation
-                [titleLabel setText:@"UIView block animation and Effection animation chian mix"];
+                [titleLabel setText:@"UIView block animation and Effection animation chain mix example"];
                 
                 [box A_AnimationEffect:A_AnimationEffectType_zoomOut Duration:1.0 CompletionBlock:^{
                     [box setHidden:YES];
@@ -86,28 +82,53 @@
             break;
         case 4:
             if (box) {
-                // Sync effection animation combin
-                [titleLabel setText:@"Sync effection animation combin"];
+                [titleLabel setText:@"Sync effection animation chain combin example"];
                 
-                [[[[box syncChainAnimation] addAnimateWithEffect:A_AnimationEffectType_squeeze type:A_AnimationType_easeInBack duration:1.0]
+                [[[[box syncAnimate] addAnimateWithEffect:A_AnimationEffectType_squeeze type:A_AnimationType_easeInBack duration:1.0]
                   addAnimateWithEffect:A_AnimationEffectType_mirror_zoomOut type:A_AnimationType_easeInExpo duration:1.5] play];
             }
             break;
         case 5:
             if (box) {
-                [titleLabel setText:@"CALayer animation"];
+                [titleLabel setText:@"CALayer animation chain example"];
                 
-                [[[box syncChainAnimation] addAnimateSetPositionX:10 AnimtionType:A_AnimationType_spring Duraion:2.0] play];
+                [[[[[box syncAnimate]
+                   addAnimateSetPositionX:20 AnimtionType:A_AnimationType_spring Duraion:2.0]
+                  addAnimateSetSize:CGSizeMake(5, 5) AnimtionType:A_AnimationType_bigLongSpring Duraion:3.0].then
+                 addAnimateSetCornerRadius:10 AnimtionType:A_AnimationType_noEffect]
+                 play];
+            }
+            break;
+        case 6:
+            if (box) {
+                [titleLabel setText:@"Custom oblique animation chain example"];
                 
-//                [[[[box syncChainAnimation] addAnimateWithEffect:A_AnimationEffectType_squeeze type:A_AnimationType_easeInBack duration:1.0]
-//                  addAnimateWithEffect:A_AnimationEffectType_mirror_zoomOut type:A_AnimationType_easeInExpo duration:1.5] play];
+                
+                dispatch_time_t delayTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC));
+                dispatch_after(delayTime, dispatch_get_main_queue(), ^{
+                    
+                    [[[box animate] addAnimateCustomLeftOblique:1.0 AnimtionType:A_AnimationType_easeInBack Duraion:1.0] play];
+
+//                    [[[[box animate] addAnimateCustomLeftOblique:1.0 AnimtionType:A_AnimationType_easeInBack Duraion:1.0]
+//                         addAnimateCustomTopOblique:1.0 AnimtionType:A_AnimationType_easeInQuad Duraion:1.0]
+//                     play];
+                    
+//                    [[[[[[[box animate] addAnimateCustomLeftOblique:1.0 AnimtionType:A_AnimationType_easeInBack Duraion:1.0]
+//                    addAnimateCustomTopOblique:1.0 AnimtionType:A_AnimationType_easeInQuad Duraion:1.0]
+//                    addAnimateCustomRightOblique:1.0 AnimtionType:A_AnimationType_easeInCirc Duraion:1.0]
+//                    addAnimateCustomBottomOblique:1.0 AnimtionType:A_AnimationType_easeInOutSine Duraion:1.0]
+//                      addAnimateCustomRecoverOblique:A_AnimationType_easeInOutBounce Duraion:1.0]
+//                     play];
+                });
+                
+//                [box.layer A_AnimationCustomLeftOblique:1.0 AnimtionType:A_AnimationType_easeInBack];
+                
+
             }
             break;
         default:
             break;
     }
-    
-    
     
     return cell;
 }

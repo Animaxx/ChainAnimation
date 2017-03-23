@@ -142,11 +142,13 @@
     return [[A_ChainAnimation animate:self] addAnimateWithWaitTime:waitTime duration:duration aniamtion:animationBlock completion:completionBlock];
 }
 
-#pragma mark - Sync Aniamtion
-- (A_ChainAnimation *)syncChainAnimation {
+#pragma mark - Create Chain Animate
+- (A_ChainAnimation *)syncAnimate {
     return [[A_ChainAnimation animate:self] thenSync];
 }
-
+- (A_ChainAnimation *)animate {
+    return [A_ChainAnimation animate:self];
+}
 
 #pragma mark - Chain Effect Animation
 - (A_ChainAnimation *)addAnimateWithEffect:(A_AnimationEffectType)effect type:(A_AnimationType)type duration:(NSTimeInterval)duration {
