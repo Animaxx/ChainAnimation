@@ -46,6 +46,7 @@
 #pragma mark - Create Chain Aniamtion;
 - (A_ChainAnimation *)syncAnimate;
 - (A_ChainAnimation *)animate;
+- (A_ChainAnimation *)animateWait:(NSTimeInterval)waitTime;
 
 #pragma mark - Chain Effect Animation
 - (A_ChainAnimation *)addAnimateWithEffect:(A_AnimationEffectType)effect type:(A_AnimationType)type duration:(NSTimeInterval)duration;

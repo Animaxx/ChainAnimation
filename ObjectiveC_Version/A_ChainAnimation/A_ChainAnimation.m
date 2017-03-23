@@ -66,7 +66,7 @@ typedef enum : NSUInteger {
 @dynamic then;
 
 #pragma mark - Private methods
-- (void) _checkSetToChain {
+- (void) _pushToChain {
     if (_syncingChainItem && (_syncingChainItem.waitingTime > 0 || _syncingChainItem.duration > 0 || (_syncingChainItem.animations && [_syncingChainItem.animations count] > 0) || _syncingChainItem.animations)) {
         [_chainItems addObject:_syncingChainItem];
     }
@@ -111,7 +111,7 @@ typedef enum : NSUInteger {
 }
 
 - (void) _playAnimate:(BOOL)setPropertyValue {
-    [self _checkSetToChain];
+    [self _pushToChain];
     
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^ {
         
@@ -125,7 +125,22 @@ typedef enum : NSUInteger {
             
             switch (item.type) {
                 case animationType_Block: {
+                    if (item.completedBlock) {
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            item.completedBlock();
+                        });
+                    }
+                }
+                    break;
+                case animationType_Wait: {
+                    dispatch_semaphore_t inflightSemaphore= dispatch_semaphore_create(0);
                     
+                    dispatch_time_t delayTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(item.waitingTime * NSEC_PER_SEC));
+                    dispatch_after(delayTime, dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+                        dispatch_semaphore_signal(inflightSemaphore);
+                    });
+                    
+                    dispatch_semaphore_wait(inflightSemaphore, DISPATCH_TIME_FOREVER);
                 }
                     break;
                 case animationType_AnimationBlock: {
@@ -220,11 +235,6 @@ typedef enum : NSUInteger {
                     });
                     
                     dispatch_semaphore_wait(inflightSemaphore, DISPATCH_TIME_FOREVER);
-                    
-                }
-                    break;
-                case animationType_Wait: {
-                    
                 }
                     break;
                 default:
@@ -266,28 +276,28 @@ typedef enum : NSUInteger {
     position.y -= oldPoint.y;
     position.y += newPoint.y;
     
-    self.targetView.layer.anchorPoint = anchorPoint;
-    self.targetView.layer.position = position;
+//    self.targetView.layer.anchorPoint = anchorPoint;
+//    self.targetView.layer.position = position;
     
-//    if (self.currectMode == chainAnimtionModeSync) {
-//        if (_syncingChainItem.properiesPreset) {
-//            [_syncingChainItem.properiesPreset setObject:[NSValue valueWithCGPoint:anchorPoint] forKey:@"anchorPoint"];
-//            [_syncingChainItem.properiesPreset setObject:[NSValue valueWithCGPoint:position] forKey:@"position"];
-//        } else {
-//            _syncingChainItem.properiesPreset = [[NSMutableDictionary alloc] initWithDictionary:@{@"anchorPoint": [NSValue valueWithCGPoint:anchorPoint],
-//                                                                                               @"position": [NSValue valueWithCGPoint:position]}];
-//        }
-//    } else {
-//        NSMutableDictionary *dic = [self.chainItems lastObject].properiesPreset;
-//        if (dic) {
-//            [dic setObject:[NSValue valueWithCGPoint:anchorPoint] forKey:@"anchorPoint"];
-//            [dic setObject:[NSValue valueWithCGPoint:position] forKey:@"position"];
-//        } else {
-//            dic = [[NSMutableDictionary alloc] initWithDictionary:@{@"anchorPoint": [NSValue valueWithCGPoint:anchorPoint],
-//                                                                    @"position": [NSValue valueWithCGPoint:position]}];
-//        }
-//        [self.chainItems lastObject].properiesPreset = dic;
-//    }
+    if (self.currectMode == chainAnimtionModeSync) {
+        if (_syncingChainItem.properiesPreset) {
+            [_syncingChainItem.properiesPreset setObject:[NSValue valueWithCGPoint:anchorPoint] forKey:@"anchorPoint"];
+            [_syncingChainItem.properiesPreset setObject:[NSValue valueWithCGPoint:position] forKey:@"position"];
+        } else {
+            _syncingChainItem.properiesPreset = [[NSMutableDictionary alloc] initWithDictionary:@{@"anchorPoint": [NSValue valueWithCGPoint:anchorPoint],
+                                                                                               @"position": [NSValue valueWithCGPoint:position]}];
+        }
+    } else {
+        NSMutableDictionary *dic = [self.chainItems lastObject].properiesPreset;
+        if (dic) {
+            [dic setObject:[NSValue valueWithCGPoint:anchorPoint] forKey:@"anchorPoint"];
+            [dic setObject:[NSValue valueWithCGPoint:position] forKey:@"position"];
+        } else {
+            dic = [[NSMutableDictionary alloc] initWithDictionary:@{@"anchorPoint": [NSValue valueWithCGPoint:anchorPoint],
+                                                                    @"position": [NSValue valueWithCGPoint:position]}];
+        }
+        [self.chainItems lastObject].properiesPreset = dic;
+    }
 }
 
 #pragma mark - Initializtion
@@ -315,13 +325,31 @@ typedef enum : NSUInteger {
 
 #pragma mark - Dynamic Property
 - (A_ChainAnimation *)thenSync {
-    [self _checkSetToChain];
+    [self _pushToChain];
     _currectMode = chainAnimtionModeSync;
     return self;
 }
 - (A_ChainAnimation *)then {
-    [self _checkSetToChain];
+    [self _pushToChain];
     _currectMode = chainAnimtionModeAsync;
+    return self;
+}
+
+#pragma mark - Empty wait and block 
+- (A_ChainAnimation *)wait:(NSTimeInterval)waitTime {
+    [self _pushToChain];
+    animationItem *item = [[animationItem alloc] init];
+    item.waitingTime = waitTime;
+    item.type = animationType_Wait;
+    [self.chainItems addObject:item];
+    return self;
+}
+- (A_ChainAnimation *)block:(void(^)(void))block {
+    [self _pushToChain];
+    animationItem *item = [[animationItem alloc] init];
+    item.completedBlock = block;
+    item.type = animationType_Block;
+    [self.chainItems addObject:item];
     return self;
 }
 
@@ -337,7 +365,7 @@ typedef enum : NSUInteger {
 }
 - (A_ChainAnimation *)addAnimateWithWaitTime:(NSTimeInterval)waitTime duration:(NSTimeInterval)duration aniamtion:(void(^)(void))animationBlock completion:(void(^)(void))completionBlock {
     
-    [self _checkSetToChain];
+    [self _pushToChain];
     
     animationItem *item = [[animationItem alloc] init];
     item.duration = duration;
@@ -347,7 +375,6 @@ typedef enum : NSUInteger {
     item.type = animationType_AnimationBlock;
     
     [self.chainItems addObject:item];
-    self.currectMode = chainAnimtionModeAsync;
     
     return self;
 }
@@ -401,145 +428,146 @@ typedef enum : NSUInteger {
 
 #pragma mark - CALayer animation set
 #pragma mark: Animation Layer Setting
-- (A_ChainAnimation *) addAnimateSetAnchorPoint:(CGPoint)value AnimtionType:(A_AnimationType)type{
+- (A_ChainAnimation *) setAnchorPoint:(CGPoint)value AnimtionType:(A_AnimationType)type{
     [self _addCALayerProperty:@"anchorPoint" value:[NSValue valueWithCGPoint:value] animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetAnchorPoint:(CGPoint)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
+- (A_ChainAnimation *) setAnchorPoint:(CGPoint)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
     [self _addCALayerProperty:@"anchorPoint" value:[NSValue valueWithCGPoint:value] animtionType:type duration:duration];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetBackgroundColor:(UIColor*)value AnimtionType:(A_AnimationType)type{
-    [self _addCALayerProperty:@"backgroundColor" value:value animtionType:type duration:0.5f];
+- (A_ChainAnimation *) setBackgroundColor:(UIColor*)value AnimtionType:(A_AnimationType)type{
+    [self _addCALayerProperty:@"backgroundColor" value:(id)value.CGColor animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetBackgroundColor:(UIColor*)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
-    [self _addCALayerProperty:@"backgroundColor" value:value animtionType:type duration:duration];
+- (A_ChainAnimation *) setBackgroundColor:(UIColor*)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
+    [self _addCALayerProperty:@"backgroundColor" value:(id)value.CGColor animtionType:type duration:duration];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetOpacity:(CGFloat)value AnimtionType:(A_AnimationType)type{
+- (A_ChainAnimation *) setOpacity:(CGFloat)value AnimtionType:(A_AnimationType)type{
     [self _addCALayerProperty:@"opacity" value:@(value) animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetOpacity:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
+- (A_ChainAnimation *) setOpacity:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
     [self _addCALayerProperty:@"opacity" value:@(value) animtionType:type duration:duration];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetPosition:(CGPoint)value AnimtionType:(A_AnimationType)type{
+- (A_ChainAnimation *) setPosition:(CGPoint)value AnimtionType:(A_AnimationType)type{
     [self _addCALayerProperty:@"position" value:[NSValue valueWithCGPoint:value] animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetPosition:(CGPoint)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
+- (A_ChainAnimation *) setPosition:(CGPoint)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
     [self _addCALayerProperty:@"position" value:[NSValue valueWithCGPoint:value] animtionType:type duration:duration];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetPositionX:(CGFloat)value AnimtionType:(A_AnimationType)type{
+- (A_ChainAnimation *) setPositionX:(CGFloat)value AnimtionType:(A_AnimationType)type{
     [self _addCALayerProperty:@"position.x" value:@(value) animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetPositionX:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
+- (A_ChainAnimation *) setPositionX:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
     [self _addCALayerProperty:@"position.x" value:@(value) animtionType:type duration:duration];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetPositionY:(CGFloat)value AnimtionType:(A_AnimationType)type{
+- (A_ChainAnimation *) setPositionY:(CGFloat)value AnimtionType:(A_AnimationType)type{
     [self _addCALayerProperty:@"position.y" value:@(value) animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetPositionY:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
+- (A_ChainAnimation *) setPositionY:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
     [self _addCALayerProperty:@"position.y" value:@(value) animtionType:type duration:duration];
     return self;
 }
 
-- (A_ChainAnimation *) addAnimateSetBounds:(CGRect)value AnimtionType:(A_AnimationType)type{
+- (A_ChainAnimation *) setBounds:(CGRect)value AnimtionType:(A_AnimationType)type{
     [self _addCALayerProperty:@"bounds" value:[NSValue valueWithCGRect:value] animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetBounds:(CGRect)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
+- (A_ChainAnimation *) setBounds:(CGRect)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
     [self _addCALayerProperty:@"bounds" value:[NSValue valueWithCGRect:value] animtionType:type duration:duration];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetBorderWidth:(CGFloat)value AnimtionType:(A_AnimationType)type{
+- (A_ChainAnimation *) setBorderWidth:(CGFloat)value AnimtionType:(A_AnimationType)type{
     [self _addCALayerProperty:@"borderWidth" value:@(value) animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetBorderWidth:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
+- (A_ChainAnimation *) setBorderWidth:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
     [self _addCALayerProperty:@"borderWidth" value:@(value) animtionType:type duration:duration];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetBorderColor:(UIColor*)value AnimtionType:(A_AnimationType)type{
-    [self _addCALayerProperty:@"borderColor" value:value animtionType:type duration:0.5f];
+- (A_ChainAnimation *) setBorderColor:(UIColor*)value AnimtionType:(A_AnimationType)type{
+    [self _addCALayerProperty:@"borderColor" value:(id)value.CGColor animtionType:type duration:0.5f];
+    
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetBorderColor:(UIColor*)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
-    [self _addCALayerProperty:@"borderColor" value:value animtionType:type duration:duration];
+- (A_ChainAnimation *) setBorderColor:(UIColor*)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
+    [self _addCALayerProperty:@"borderColor" value:(id)value.CGColor animtionType:type duration:duration];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetContentsRect:(CGRect)value AnimtionType:(A_AnimationType)type{
-    [self _addCALayerProperty:@"borderColor" value:[NSValue valueWithCGRect:value] animtionType:type duration:0.5f];
+- (A_ChainAnimation *) setContentsRect:(CGRect)value AnimtionType:(A_AnimationType)type{
+    [self _addCALayerProperty:@"contentsRect" value:[NSValue valueWithCGRect:value] animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetContentsRect:(CGRect)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
-    [self _addCALayerProperty:@"borderColor" value:[NSValue valueWithCGRect:value] animtionType:type duration:duration];
+- (A_ChainAnimation *) setContentsRect:(CGRect)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
+    [self _addCALayerProperty:@"contentsRect" value:[NSValue valueWithCGRect:value] animtionType:type duration:duration];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetCornerRadius:(CGFloat)value AnimtionType:(A_AnimationType)type{
+- (A_ChainAnimation *) setCornerRadius:(CGFloat)value AnimtionType:(A_AnimationType)type{
     [self _addCALayerProperty:@"cornerRadius" value:@(value) animtionType:type duration:0.5f];
     [self.targetView.layer setMasksToBounds:YES];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetCornerRadius:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
+- (A_ChainAnimation *) setCornerRadius:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
     [self _addCALayerProperty:@"cornerRadius" value:@(value) animtionType:type duration:duration];
     [self.targetView.layer setMasksToBounds:YES];
     return self;
 }
 
-- (A_ChainAnimation *) addAnimateSetShadowOffset:(CGSize)value AnimtionType:(A_AnimationType)type{
+- (A_ChainAnimation *) setShadowOffset:(CGSize)value AnimtionType:(A_AnimationType)type{
     [self _addCALayerProperty:@"shadowOffset" value:[NSValue valueWithCGSize:value] animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetShadowOffset:(CGSize)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
+- (A_ChainAnimation *) setShadowOffset:(CGSize)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
     [self _addCALayerProperty:@"shadowOffset" value:[NSValue valueWithCGSize:value] animtionType:type duration:duration];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetShadowOpacity:(CGFloat)value AnimtionType:(A_AnimationType)type{
+- (A_ChainAnimation *) setShadowOpacity:(CGFloat)value AnimtionType:(A_AnimationType)type{
     [self _addCALayerProperty:@"shadowOpacity" value:@(value) animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetShadowOpacity:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
+- (A_ChainAnimation *) setShadowOpacity:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
     [self _addCALayerProperty:@"shadowOpacity" value:@(value) animtionType:type duration:duration];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetShadowRadius:(CGFloat)value AnimtionType:(A_AnimationType)type{
+- (A_ChainAnimation *) setShadowRadius:(CGFloat)value AnimtionType:(A_AnimationType)type{
     [self _addCALayerProperty:@"shadowRadius" value:@(value) animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetShadowRadius:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
+- (A_ChainAnimation *) setShadowRadius:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
     [self _addCALayerProperty:@"shadowRadius" value:@(value) animtionType:type duration:duration];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetSublayerTransform:(CATransform3D)value AnimtionType:(A_AnimationType)type{
+- (A_ChainAnimation *) setSublayerTransform:(CATransform3D)value AnimtionType:(A_AnimationType)type{
     [self _addCALayerProperty:@"sublayerTransform" value:[NSValue valueWithCATransform3D:value] animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetSublayerTransform:(CATransform3D)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
+- (A_ChainAnimation *) setSublayerTransform:(CATransform3D)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
     [self _addCALayerProperty:@"sublayerTransform" value:[NSValue valueWithCATransform3D:value] animtionType:type duration:duration];
     return self;
 }
 
-- (A_ChainAnimation *) addAnimateSetZPosition:(CGFloat)value AnimtionType:(A_AnimationType)type{
-    [self _addCALayerProperty:@"sublayerTransform" value:@(value) animtionType:type duration:0.5f];
+- (A_ChainAnimation *) setZPosition:(CGFloat)value AnimtionType:(A_AnimationType)type{
+    [self _addCALayerProperty:@"zPosition" value:@(value) animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetZPosition:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
-    [self _addCALayerProperty:@"sublayerTransform" value:@(value) animtionType:type duration:duration];
+- (A_ChainAnimation *) setZPosition:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
+    [self _addCALayerProperty:@"zPosition" value:@(value) animtionType:type duration:duration];
     return self;
 }
 
-- (A_ChainAnimation *) addAnimateSetSize:(CGSize)value AnimtionType:(A_AnimationType)type{
-    [self addAnimateSetSize:value AnimtionType:type Duraion:0.5f];
+- (A_ChainAnimation *) setSize:(CGSize)value AnimtionType:(A_AnimationType)type{
+    [self setSize:value AnimtionType:type Duraion:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetSize:(CGSize)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
+- (A_ChainAnimation *) setSize:(CGSize)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
     float widthDiff = (value.width - self.targetView.bounds.size.width) / 2.0f;
     float hightDiff = (value.height - self.targetView.bounds.size.height) / 2.0f;
     
@@ -549,117 +577,115 @@ typedef enum : NSUInteger {
     return self;
 }
 
-- (A_ChainAnimation *) addAnimateSetTransform:(CATransform3D)value AnimtionType:(A_AnimationType)type{
+- (A_ChainAnimation *) setTransform:(CATransform3D)value AnimtionType:(A_AnimationType)type{
     [self _addCALayerProperty:@"transform" value:[NSValue valueWithCATransform3D:value] animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetTransform:(CATransform3D)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
+- (A_ChainAnimation *) setTransform:(CATransform3D)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
     [self _addCALayerProperty:@"transform" value:[NSValue valueWithCATransform3D:value] animtionType:type duration:duration];
     return self;
 }
 
 
 #pragma mark: Animation Transform Setting
-- (A_ChainAnimation *) addAnimateSetRotationX:(CGFloat)value AnimtionType:(A_AnimationType)type {
+- (A_ChainAnimation *) setRotationX:(CGFloat)value AnimtionType:(A_AnimationType)type {
     [self _addCALayerProperty:@"transform.rotation.x" value:@(value) animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetRotationX:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+- (A_ChainAnimation *) setRotationX:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
     [self _addCALayerProperty:@"transform.rotation.x" value:@(value) animtionType:type duration:duration];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetRotationY:(CGFloat)value AnimtionType:(A_AnimationType)type {
+- (A_ChainAnimation *) setRotationY:(CGFloat)value AnimtionType:(A_AnimationType)type {
     [self _addCALayerProperty:@"transform.rotation.y" value:@(value) animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetRotationY:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+- (A_ChainAnimation *) setRotationY:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
     [self _addCALayerProperty:@"transform.rotation.y" value:@(value) animtionType:type duration:duration];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetRotationZ:(CGFloat)value AnimtionType:(A_AnimationType)type {
+- (A_ChainAnimation *) setRotationZ:(CGFloat)value AnimtionType:(A_AnimationType)type {
     [self _addCALayerProperty:@"transform.rotation.z" value:@(value) animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetRotationZ:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+- (A_ChainAnimation *) setRotationZ:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
     [self _addCALayerProperty:@"transform.rotation.z" value:@(value) animtionType:type duration:duration];
     return self;
 }
 
-- (A_ChainAnimation *) addAnimateSetScaleX:(CGFloat)value AnimtionType:(A_AnimationType)type {
+- (A_ChainAnimation *) setScaleX:(CGFloat)value AnimtionType:(A_AnimationType)type {
     [self _addCALayerProperty:@"transform.scale.x" value:@(value) animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetScaleX:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+- (A_ChainAnimation *) setScaleX:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
     [self _addCALayerProperty:@"transform.scale.x" value:@(value) animtionType:type duration:duration];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetScaleY:(CGFloat)value AnimtionType:(A_AnimationType)type {
+- (A_ChainAnimation *) setScaleY:(CGFloat)value AnimtionType:(A_AnimationType)type {
     [self _addCALayerProperty:@"transform.scale.y" value:@(value) animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetScaleY:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+- (A_ChainAnimation *) setScaleY:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
     [self _addCALayerProperty:@"transform.scale.y" value:@(value) animtionType:type duration:duration];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetScaleZ:(CGFloat)value AnimtionType:(A_AnimationType)type {
+- (A_ChainAnimation *) setScaleZ:(CGFloat)value AnimtionType:(A_AnimationType)type {
     [self _addCALayerProperty:@"transform.scale.z" value:@(value) animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetScaleZ:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+- (A_ChainAnimation *) setScaleZ:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
     [self _addCALayerProperty:@"transform.scale.z" value:@(value) animtionType:type duration:duration];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetScale:(CGFloat)value AnimtionType:(A_AnimationType)type {
+- (A_ChainAnimation *) setScale:(CGFloat)value AnimtionType:(A_AnimationType)type {
     [self _addCALayerProperty:@"transform.scale" value:@(value) animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetScale:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+- (A_ChainAnimation *) setScale:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
     [self _addCALayerProperty:@"transform.scale" value:@(value) animtionType:type duration:duration];
     return self;
 }
 
-- (A_ChainAnimation *) addAnimateSetTranslationX:(CGFloat)value AnimtionType:(A_AnimationType)type {
+- (A_ChainAnimation *) setTranslationX:(CGFloat)value AnimtionType:(A_AnimationType)type {
     [self _addCALayerProperty:@"transform.translation.x" value:@(value) animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetTranslationX:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+- (A_ChainAnimation *) setTranslationX:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
     [self _addCALayerProperty:@"transform.translation.x" value:@(value) animtionType:type duration:duration];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetTranslationY:(CGFloat)value AnimtionType:(A_AnimationType)type {
+- (A_ChainAnimation *) setTranslationY:(CGFloat)value AnimtionType:(A_AnimationType)type {
     [self _addCALayerProperty:@"transform.translation.y" value:@(value) animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetTranslationY:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+- (A_ChainAnimation *) setTranslationY:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
     [self _addCALayerProperty:@"transform.translation.y" value:@(value) animtionType:type duration:duration];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetTranslationZ:(CGFloat)value AnimtionType:(A_AnimationType)type {
+- (A_ChainAnimation *) setTranslationZ:(CGFloat)value AnimtionType:(A_AnimationType)type {
     [self _addCALayerProperty:@"transform.translation.z" value:@(value) animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetTranslationZ:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+- (A_ChainAnimation *) setTranslationZ:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
     [self _addCALayerProperty:@"transform.translation.z" value:@(value) animtionType:type duration:duration];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetTranslation:(CGSize)value AnimtionType:(A_AnimationType)type {
+- (A_ChainAnimation *) setTranslation:(CGSize)value AnimtionType:(A_AnimationType)type {
     [self _addCALayerProperty:@"transform.translation" value:[NSValue valueWithCGSize:value] animtionType:type duration:0.5f];
     return self;
 }
-- (A_ChainAnimation *) addAnimateSetTranslation:(CGSize)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+- (A_ChainAnimation *) setTranslation:(CGSize)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
     [self _addCALayerProperty:@"transform.translation" value:[NSValue valueWithCGSize:value] animtionType:type duration:duration];
     return self;
 }
 
 #pragma mark: Custom Setting
-- (A_ChainAnimation *) addAnimateCustomLeftOblique:(CGFloat)value AnimtionType:(A_AnimationType)type {
-    return [self addAnimateCustomLeftOblique:value AnimtionType:type Duraion:0.5f];
+- (A_ChainAnimation *) setLeftOblique:(CGFloat)value AnimtionType:(A_AnimationType)type {
+    return [self setLeftOblique:value AnimtionType:type Duraion:0.5f];
 }
-- (A_ChainAnimation *) addAnimateCustomLeftOblique:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
+- (A_ChainAnimation *) setLeftOblique:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
     if (value<0.0) { value = 0.0f; }
     else if (value>1.0) { value = 1.0f; }
-    
-    [self _presetCustomAnchorPoint:CGPointMake(0.0, 0.5)];
     
     CATransform3D transformation = CATransform3DIdentity;
     transformation.m14 = (value/100);
@@ -667,71 +693,71 @@ typedef enum : NSUInteger {
     CATransform3D yRotation = CATransform3DMakeRotation((value*-75)*M_PI/180.0, 0.0, 1.0, 0);
     CATransform3D concatenatedTransformation = CATransform3DConcat(yRotation, transformation);
     
-    [self addAnimateSetTransform:concatenatedTransformation AnimtionType:type Duraion:duration];
+    [self setTransform:concatenatedTransformation AnimtionType:type Duraion:duration];
+    
+    [self _presetCustomAnchorPoint:CGPointMake(0.0, 0.5)];
+    
     return self;
 }
 
-/* Range of value [0 ... 1.0], 0 means no change */
-- (A_ChainAnimation *) addAnimateCustomRightOblique:(CGFloat)value AnimtionType:(A_AnimationType)type {
-    return [self addAnimateCustomRightOblique:value AnimtionType:type Duraion:0.5f];
+- (A_ChainAnimation *) setRightOblique:(CGFloat)value AnimtionType:(A_AnimationType)type {
+    return [self setRightOblique:value AnimtionType:type Duraion:0.5f];
 }
-- (A_ChainAnimation *) addAnimateCustomRightOblique:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
+- (A_ChainAnimation *) setRightOblique:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration{
     if (value<0.0) { value = 0.0f; }
     else if (value>1.0) { value = 1.0f; }
     
-    [self _presetCustomAnchorPoint:CGPointMake(1.0, 0.5)];
     CATransform3D transformation = CATransform3DIdentity;
     transformation.m14 = -(value/100);
     
     CATransform3D yRotation = CATransform3DMakeRotation((value*75)*M_PI/180.0, 0.0, 1.0, 0);
     CATransform3D concatenatedTransformation = CATransform3DConcat(yRotation, transformation);
     
-    [self addAnimateSetTransform:concatenatedTransformation AnimtionType:type Duraion:duration];
+    [self setTransform:concatenatedTransformation AnimtionType:type Duraion:duration];
+    [self _presetCustomAnchorPoint:CGPointMake(1.0, 0.5)];
     return self;
 }
 
-/* Range of value [0 ... 1.0], 0 means no change */
-- (A_ChainAnimation *) addAnimateCustomTopOblique:(CGFloat)value AnimtionType:(A_AnimationType)type {
-    return [self addAnimateCustomTopOblique:value AnimtionType:type Duraion:0.5f];
+- (A_ChainAnimation *) setTopOblique:(CGFloat)value AnimtionType:(A_AnimationType)type {
+    return [self setTopOblique:value AnimtionType:type Duraion:0.5f];
 }
-- (A_ChainAnimation *) addAnimateCustomTopOblique:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+- (A_ChainAnimation *) setTopOblique:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
     if (value<0.0) { value = 0.0f; }
     else if (value>1.0) { value = 1.0f; }
     
-    [self _presetCustomAnchorPoint:CGPointMake(0.5, 0.0)];
     CATransform3D transformation = CATransform3DIdentity;
     transformation.m24 = (value/100);
     
     CATransform3D yRotation = CATransform3DMakeRotation((value*75)*M_PI/180.0, 1.0, 0.0, 0);
     CATransform3D concatenatedTransformation = CATransform3DConcat(yRotation, transformation);
     
-    [self addAnimateSetTransform:concatenatedTransformation AnimtionType:type Duraion:duration];
+    [self setTransform:concatenatedTransformation AnimtionType:type Duraion:duration];
+    [self _presetCustomAnchorPoint:CGPointMake(0.5, 0.0)];
     return self;
 }
 
-/* Range of value [0 ... 1.0], 0 means no change */
-- (A_ChainAnimation *) addAnimateCustomBottomOblique:(CGFloat)value AnimtionType:(A_AnimationType)type {
-    return [self addAnimateCustomBottomOblique:value AnimtionType:type Duraion:0.5f];
+- (A_ChainAnimation *) setBottomOblique:(CGFloat)value AnimtionType:(A_AnimationType)type {
+    return [self setBottomOblique:value AnimtionType:type Duraion:0.5f];
 }
-- (A_ChainAnimation *) addAnimateCustomBottomOblique:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
+- (A_ChainAnimation *) setBottomOblique:(CGFloat)value AnimtionType:(A_AnimationType)type Duraion:(double)duration {
     if (value<0.0) { value = 0.0f; }
     else if (value>1.0) { value = 1.0f; }
     
-    [self _presetCustomAnchorPoint:CGPointMake(0.5, 1.0)];
     CATransform3D transformation = CATransform3DIdentity;
     transformation.m24 = -(value/100);
     
     CATransform3D yRotation = CATransform3DMakeRotation((value*-75)*M_PI/180.0, 1.0, 0.0, 0);
     CATransform3D concatenatedTransformation = CATransform3DConcat(yRotation, transformation);
     
-    [self addAnimateSetTransform:concatenatedTransformation AnimtionType:type Duraion:duration];
+    [self setTransform:concatenatedTransformation AnimtionType:type Duraion:duration];
+    [self _presetCustomAnchorPoint:CGPointMake(0.5, 1.0)];
     return self;
 }
 
-- (A_ChainAnimation *) addAnimateCustomRecoverOblique:(A_AnimationType)type {
-    return [self addAnimateCustomRecoverOblique:type Duraion:0.5f];
+- (A_ChainAnimation *) setRecoverOblique:(A_AnimationType)type {
+    return [self setRecoverOblique:type Duraion:0.5f];
 }
-- (A_ChainAnimation *) addAnimateCustomRecoverOblique:(A_AnimationType)type Duraion:(double)duration {
+- (A_ChainAnimation *) setRecoverOblique:(A_AnimationType)type Duraion:(double)duration {
     CGPoint anchorPoint = CGPointMake(0.5, 0.5);
     
     CGPoint newPoint = CGPointMake(self.targetView.layer.bounds.size.width * anchorPoint.x,
@@ -747,7 +773,7 @@ typedef enum : NSUInteger {
     position.y -= oldPoint.y;
     position.y += newPoint.y;
     
-    [self addAnimateSetTransform:CATransform3DIdentity AnimtionType:type Duraion:duration];
+    [self setTransform:CATransform3DIdentity AnimtionType:type Duraion:duration];
     
     [self _addProperiesSetWithKey:@"position" andValue:[NSValue valueWithCGPoint:position]];
     [self _addProperiesSetWithKey:@"anchorPoint" andValue:[NSValue valueWithCGPoint:anchorPoint]];

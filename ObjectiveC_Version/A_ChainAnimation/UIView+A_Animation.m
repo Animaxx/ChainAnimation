@@ -149,6 +149,9 @@
 - (A_ChainAnimation *)animate {
     return [A_ChainAnimation animate:self];
 }
+- (A_ChainAnimation *)animateWait:(NSTimeInterval)waitTime {
+    return [[A_ChainAnimation animate:self] wait:waitTime];
+}
 
 #pragma mark - Chain Effect Animation
 - (A_ChainAnimation *)addAnimateWithEffect:(A_AnimationEffectType)effect type:(A_AnimationType)type duration:(NSTimeInterval)duration {
