@@ -16,50 +16,76 @@ This project provides two animation methods:
 
 ##### Display one-time custom effection animation(Press) by **A-Animation**:
 
-<pre lang="Objective-C">
-// Objective-C
-[box A_AnimationEffect:A_AnimationEffectType_press Repeat:2.5 Duration:1.0];`
-</pre>
-<pre lang="Swift">
-// Swift
-box.a_AnimationEffect(.press, repeat: 2.5, duration: 1.0)`
-</pre>
+<table>
+<tr>
+<td width="25%">
+	![demo](./DemoGifs/quick_demo_1.gif)
+</td>
+<td width="75%">
+	<pre lang="Objective-C">
+	// Objective-C
+	[box A_AnimationEffect:A_AnimationEffectType_press Repeat:2.5 Duration:1.0];
+	</pre>
+	<pre lang="Swift">
+	// Swift
+	box.a_AnimationEffect(.press, repeat: 2.5, duration: 1.0)
+	</pre>
+</td>
+</tr>
+</table>
+
 
 ##### Display one-time CALayer animation by **A-Animation**:
 
-<pre lang="Objective-C">
-// Objective-C
-[box.layer A_AnimationSetScaleX:1.5 AnimtionType:A_AnimationType_easeInOutBounce Duraion:1.0];
-</pre>
-<pre lang="Swift">
-// Swift
-box.layer.a_AnimationSetScaleX(1.5, animtionType: .easeInOutBounce, duraion:1.0)
-</pre>
+<table>
+<tr>
+<td width="25%">
+	![demo](./DemoGifs/quick_demo_2.gif)
+</td>
+<td width="75%">
+	<pre lang="Objective-C">
+	// Objective-C
+	[box.layer A_AnimationSetScaleX:1.5 AnimtionType:A_AnimationType_easeInOutBounce Duraion:1.0];
+	</pre>
+	<pre lang="Swift">
+	// Swift
+	box.layer.a_AnimationSetScaleX(1.5, animtionType: .easeInOutBounce, duraion:1.0)
+	</pre>
+</td>
+</tr>
+</table>
 
-##### Display chain animation 
 
-UIView block animation and Effection animation chain mix example
-<pre lang="Objective-C">
-// Objective-C
-[[[[[box addAnimateWithDuration:1.0 aniamtion:^{
-    [box setAlpha:0.3];
-}] addAnimateWithEffect:A_AnimationEffectType_pulse type:A_AnimationType_easeInBack duration:1.0]
-   addAnimateWithDuration:1.0 aniamtion:^{
-       [box setAlpha:1.0];
-   }] addAnimateWithEffect:A_AnimationEffectType_squeeze type:A_AnimationType_easeOutElastic duration:1.0]
- play];
-</pre>
-<pre lang="Swift">
-// Swift
-box.addAnimate(withDuration: 1.0, aniamtion: { 
-		box.alpha = 0.3 
-	 })
-    .addAnimate(with: .pulse, type: .easeInBack, duration: 1.0)
-    .addAnimate(withDuration: 1.0, aniamtion: {
-        box.alpha = 1.0
-    })
-    .addAnimate(with: .squeeze, type: .easeOutElastic, duration: 1.0)
-    .play()
-</pre>
+##### Display chain animation by **A-ChainAnimation**
+
+<table>
+<tr>
+<td width="25%">
+	![demo](./DemoGifs/quick_demo_3.gif)
+</td>
+<td width="75%">
+	<pre lang="Objective-C">
+	// Objective-C
+	[[[[[box syncAnimate]
+	   setPositionX:20 AnimtionType:A_AnimationType_spring Duraion:2.0]
+	  setSize:CGSizeMake(5, 5) AnimtionType:A_AnimationType_bigLongSpring Duraion:3.0].then
+	 setCornerRadius:10 AnimtionType:A_AnimationType_noEffect]
+	 play];
+	</pre>
+	<pre lang="Swift">
+	// Swift
+	box.syncAnimate()
+	    .setPositionX(20, animtionType: .spring, duraion: 2.0)
+	    .setSize(CGSize(width: 5, height: 5), animtionType: .bigLongSpring , duraion: 3.0)
+	    .then
+	    .setCornerRadius(10, animtionType: .noEffect)
+	    .play()
+	</pre>
+</td>
+</tr>
+</table>
+
+
+
 
 
