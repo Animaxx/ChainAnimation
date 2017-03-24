@@ -18,18 +18,22 @@ This project provides two animation methods:
 
 <table>
 <tr>
-<td width="25%">
-	<img src="./DemoGifs/quick_demo_1.gif" ></img>
+<td min-width="160px">
+
+<img src="./DemoGifs/quick_demo_1.gif" width="160"></img>
+
 </td>
-<td width="75%">
-	<pre lang="Objective-C">
-	// Objective-C
-	[box A_AnimationEffect:A_AnimationEffectType_press Repeat:2.5 Duration:1.0];
-	</pre>
-	<pre lang="Swift">
-	// Swift
-	box.a_AnimationEffect(.press, repeat: 2.5, duration: 1.0)
-	</pre>
+<td>
+
+<pre lang="Objective-C">
+// Objective-C
+[box A_AnimationEffect:A_AnimationEffectType_press Repeat:2.5 Duration:1.0];
+</pre>
+<pre lang="Swift">
+// Swift
+box.a_AnimationEffect(.press, repeat: 2.5, duration: 1.0)
+</pre>
+
 </td>
 </tr>
 </table>
@@ -37,53 +41,42 @@ This project provides two animation methods:
 
 ##### Display one-time CALayer animation by **A-Animation**:
 
-<table>
-<tr>
-<td width="25%">
-	<img src="./DemoGifs/quick_demo_2.gif" ></img>
-</td>
-<td width="75%">
-	<pre lang="Objective-C">
-	// Objective-C
-	[box.layer A_AnimationSetScaleX:1.5 AnimtionType:A_AnimationType_easeInOutBounce Duraion:1.0];
-	</pre>
-	<pre lang="Swift">
-	// Swift
-	box.layer.a_AnimationSetScaleX(1.5, animtionType: .easeInOutBounce, duraion:1.0)
-	</pre>
-</td>
-</tr>
-</table>
+
+<img src="./DemoGifs/quick_demo_2.gif" width="160"></img>
+
+<pre lang="Objective-C">
+// Objective-C
+[box.layer A_AnimationSetScaleX:1.5 AnimtionType:A_AnimationType_easeInOutBounce Duraion:1.0];
+</pre>
+<pre lang="Swift">
+// Swift
+box.layer.a_AnimationSetScaleX(1.5, animtionType: .easeInOutBounce, duraion:1.0)
+</pre>
+
 
 
 ##### Display chain animation by **A-ChainAnimation**
 
-<table>
-<tr>
-<td width="25%">
-	<img src="./DemoGifs/quick_demo_3.gif" ></img>
-</td>
-<td width="75%">
-	<pre lang="Objective-C">
-	// Objective-C
-	[[[[[box syncAnimate]
-	   setPositionX:20 AnimtionType:A_AnimationType_spring Duraion:2.0]
-	  setSize:CGSizeMake(5, 5) AnimtionType:A_AnimationType_bigLongSpring Duraion:3.0].then
-	 setCornerRadius:10 AnimtionType:A_AnimationType_noEffect]
-	 play];
-	</pre>
-	<pre lang="Swift">
-	// Swift
-	box.syncAnimate()
-	    .setPositionX(20, animtionType: .spring, duraion: 2.0)
-	    .setSize(CGSize(width: 5, height: 5), animtionType: .bigLongSpring , duraion: 3.0)
-	    .then
-	    .setCornerRadius(10, animtionType: .noEffect)
-	    .play()
-	</pre>
-</td>
-</tr>
-</table>
+<img src="./DemoGifs/quick_demo_3.gif" width="160"></img>
+
+<pre lang="Objective-C">
+// Objective-C
+[[[[[box syncAnimate]
+   setPositionX:20 AnimtionType:A_AnimationType_spring Duraion:2.0]
+  setSize:CGSizeMake(5, 5) AnimtionType:A_AnimationType_bigLongSpring Duraion:3.0].then
+ setCornerRadius:10 AnimtionType:A_AnimationType_noEffect]
+ play];
+</pre>
+<pre lang="Swift">
+// Swift
+box.syncAnimate()
+    .setPositionX(20, animtionType: .spring, duraion: 2.0)
+    .setSize(CGSize(width: 5, height: 5), animtionType: .bigLongSpring , duraion: 3.0)
+    .then
+    .setCornerRadius(10, animtionType: .noEffect)
+    .play()
+</pre>
+
 
 
 
