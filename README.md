@@ -16,14 +16,7 @@ This project provides two animation methods:
 
 ##### Display one-time custom effection animation(Press) by **A-Animation**:
 
-<table>
-<tr>
-<td min-width="160px">
-
 <img src="./DemoGifs/quick_demo_1.gif" width="160"></img>
-
-</td>
-<td>
 
 <pre lang="Objective-C">
 // Objective-C
@@ -33,10 +26,6 @@ This project provides two animation methods:
 // Swift
 box.a_AnimationEffect(.press, repeat: 2.5, duration: 1.0)
 </pre>
-
-</td>
-</tr>
-</table>
 
 
 ##### Display one-time CALayer animation by **A-Animation**:
