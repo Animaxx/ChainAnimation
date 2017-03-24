@@ -19,7 +19,7 @@ This project provides two animation methods:
 <table>
 <tr>
 <td width="25%">
-	![demo](./DemoGifs/quick_demo_1.gif)
+	<img src="./DemoGifs/quick_demo_1.gif" ></img>
 </td>
 <td width="75%">
 	<pre lang="Objective-C">
@@ -40,7 +40,7 @@ This project provides two animation methods:
 <table>
 <tr>
 <td width="25%">
-	![demo](./DemoGifs/quick_demo_2.gif)
+	<img src="./DemoGifs/quick_demo_2.gif" ></img>
 </td>
 <td width="75%">
 	<pre lang="Objective-C">
@@ -61,7 +61,7 @@ This project provides two animation methods:
 <table>
 <tr>
 <td width="25%">
-	![demo](./DemoGifs/quick_demo_3.gif)
+	<img src="./DemoGifs/quick_demo_3.gif" ></img>
 </td>
 <td width="75%">
 	<pre lang="Objective-C">
