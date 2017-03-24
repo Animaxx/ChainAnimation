@@ -17,16 +17,18 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
 
     // MARK: Implement UITableViewDelegate and UITableViewDataSource
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 7
+        return 9
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell")
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         
-        if let box = cell?.viewWithTag(1), let titleLabel = cell?.viewWithTag(10) as? UILabel {
+        if let box = cell.viewWithTag(1), let titleLabel = cell.viewWithTag(10) as? UILabel {
             
             titleLabel.text = ""
             box.isHidden = false
+            box.layer.transform = CATransform3DIdentity
+            box.layer.backgroundColor = UIColor.black
             
             switch indexPath.row {
             case 0:
@@ -101,12 +103,20 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                     .play()
                 
                 break
+            case 7:
+                titleLabel.text = "One-time Effection Animation"
+                box.a_AnimationEffect(.press, repeat: 2.5, duration: 1.0)
+                break
+            case 8:
+                titleLabel.text = "One-time CGLayer Animation"
+                box.layer.a_AnimationSetScaleX(1.5, animtionType: .easeInOutBounce, duraion:1.0)
+                break
             default:
                 break
             }
         }
         
-        return cell!
+        return cell
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {

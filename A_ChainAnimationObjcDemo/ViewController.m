@@ -25,7 +25,7 @@
 
 #pragma mark - implement UITableViewDelegate and UITableViewDataSource
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return 7;
+    return 9;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -33,6 +33,9 @@
     
     __weak UIView *box = [cell viewWithTag:1];
     __weak UILabel *titleLabel = (UILabel *)[cell viewWithTag:10];
+    
+    [[box layer] setTransform:CATransform3DIdentity];
+    [[box layer] setBackgroundColor:[UIColor blackColor].CGColor];
     
     [titleLabel setText:@""];
     [box setHidden:NO];
@@ -111,6 +114,19 @@
                     box.backgroundColor = [UIColor blueColor];
                 }] wait:3.0]
                   setBackgroundColor:[UIColor redColor] AnimtionType:A_AnimationType_bigLongSpring Duraion:2.0] play];
+            }
+            break;
+        case 7:
+            if (box) {
+                [titleLabel setText:@"One-time Effection Animation"];
+                
+                [box A_AnimationEffect:A_AnimationEffectType_press Repeat:2.5 Duration:1.0];
+            }
+            break;
+        case 8:
+            if (box) {
+                [titleLabel setText:@"One-time CGLayer Animation"];
+                [box.layer A_AnimationSetScaleX:1.5 AnimtionType:A_AnimationType_easeInOutBounce Duraion:1.0];
             }
             break;
         default:
